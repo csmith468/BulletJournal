@@ -1,3 +1,4 @@
+using API.Models.DTOs;
 using API.Models.Entities;
 
 namespace API.Data.Interfaces {
@@ -5,7 +6,7 @@ namespace API.Data.Interfaces {
         Task<AppUser> GetAppUserByEmailAsync(string email);
         Task<AppUser> GetAppUserByIdAsync(int id);
         Task<IEnumerable<AppUser>> GetAppUsersAsync();
-        Task<bool> EmailExists(string email);
-        Task<bool> RegisterUser(AppUser user);
+        Task<bool> EmailExistsAsync(string email);
+        Task<AppUserDto> RegisterUserAsync(AppUser user);
     }
 }

@@ -1,4 +1,5 @@
 using System.Data;
+using API.Data.Helpers;
 using API.Models.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,9 @@ namespace API.Data {
         }
 
         public DbSet<AppUser> AppUsers { get; set; }
+        public DbSet<SleepRecord> SleepRecords { get; set; }
+        public DbSet<MorningChecklist> MorningChecklists { get; set; }
+        public DbSet<NightChecklist> NightChecklists { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             if (!optionsBuilder.IsConfigured) {
@@ -29,8 +33,17 @@ namespace API.Data {
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             modelBuilder.HasDefaultSchema("bja");
 
-            modelBuilder.Entity<AppUser>().ToTable("user", "bja").HasKey(u => u.Id_User);
-            modelBuilder.Entity<SleepData>().ToTable("sleep", "bja").HasKey(u => u.Id_Sleep);
+            modelBuilder.Entity<AppUser>().ToTable("user", "bja").HasKey(u => u.UserID);
+            modelBuilder.Entity<SleepRecord>().ToTable("sleep", "bja").HasKey(u => u.SleepID);
+            modelBuilder.Entity<MorningChecklist>().ToTable("morningChecklist", "bja")
+                .HasKey(u => u.MorningChecklistID);
+            modelBuilder.Entity<NightChecklist>().ToTable("nightChecklist", "bja")
+                .HasKey(u => u.NightChecklistID);
+        }
+
+        protected override void ConfigureConventions(ModelConfigurationBuilder builder) {
+            base.ConfigureConventions(builder);
+            builder.Properties<DateOnly>().HaveConversion<DateTimeToOnlyConverter>();
         }
 
     }

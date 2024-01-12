@@ -9,6 +9,7 @@ using API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API.Models.Entities;
+using API.Extensions;
 
 namespace API.Controllers
 {
@@ -25,7 +26,7 @@ namespace API.Controllers
 
         [HttpPost("register")]
         public async Task<ActionResult<AppUserDto>> Register(RegisterDto registerDto) {
-            if (await _uow.UserRepository.EmailExists(registerDto.Email)) return BadRequest("Email is taken.");
+            if (await _uow.UserRepository.EmailExistsAsync(registerDto.Email)) return BadRequest("Email is taken.");
             
             using var hmac = new HMACSHA512();
             var user = new AppUser {
@@ -36,9 +37,10 @@ namespace API.Controllers
                 PasswordSalt = hmac.Key
             };
 
-            var result = _uow.UserRepository.RegisterUser(user);
+            var result = _uow.UserRepository.RegisterUserAsync(user);
 
             return new AppUserDto{
+                UserID = result.Result.UserID,
                 Email = user.Email,
                 FirstName = HelperFunctions.StringTitleCase(registerDto.FirstName),
                 LastName = HelperFunctions.StringTitleCase(registerDto.LastName),
@@ -60,6 +62,7 @@ namespace API.Controllers
             }
 
             return new AppUserDto {
+                UserID = user.UserID,
                 Email = user.Email,
                 FirstName = HelperFunctions.StringTitleCase(user.FirstName),
                 LastName = HelperFunctions.StringTitleCase(user.LastName),

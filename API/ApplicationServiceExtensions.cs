@@ -2,6 +2,7 @@ using API.Data.Interfaces;
 using API.Data.Repositories;
 using API.Services;
 using API.Extensions;
+using API.Data.Helpers;
 
 namespace API.Extensions {
     public static class ApplicationServiceExtensions {
@@ -18,6 +19,7 @@ namespace API.Extensions {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ISleepRepository, SleepRepository>();
+            services.AddScoped<IChecklistRepository, ChecklistRepository>();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
