@@ -1,20 +1,18 @@
 
 export interface MorningChecklistInterface {
-    Date: Date;
-    GlassOfWater: boolean;
-    Meds: boolean;
-    Vitamins: boolean;
-    Breakfast: boolean;
-    ModifiedDatetime: Date;
+    date: Date;
+    glassOfWater: boolean;
+    meds: boolean;
+    vitamins: boolean;
+    breakfast: boolean;
 }
 
 export class MorningChecklist {
-    Date = new Date();
-    GlassOfWater = false;
-    Meds = false;
-    Vitamins = false;
-    Breakfast = false;
-    ModifiedDatetime = new Date();
+    date = new Date();
+    glassOfWater = false;
+    meds = false;
+    vitamins = false;
+    breakfast = false;
 
     constructor() {
     }

@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using API.Data.Helpers;
 using API.Data.Interfaces;
 using API.Models.DTOs;
@@ -42,8 +43,25 @@ namespace API.Data.Repositories {
                 UserID = user.UserID,
                 Email = user.Email,
                 FirstName = HelperFunctions.StringTitleCase(user.FirstName),
-                LastName = HelperFunctions.StringTitleCase(user.LastName)
+                LastName = HelperFunctions.StringTitleCase(user.LastName),
+                TimezoneLocationID = user.TimezoneLocationID
             };
+        }
+
+        public async Task<IEnumerable<TimezoneLocation>> GetTimezoneLocationsAsync() {
+            return await _contextEF.TimezoneLocations
+                .OrderBy(t => t.TimezoneLocationName)
+                .ToListAsync();
+        }
+
+        public async Task<TimezoneLocation> GetTimezoneLocationByID(int id) {
+            return await _contextEF.TimezoneLocations
+                .Where(t => t.TimezoneLocationID == id)
+                .SingleOrDefaultAsync();
+        }
+
+        public async Task<bool> TimezoneExists(int id) {
+            return await _contextEF.TimezoneLocations.AnyAsync(x => x.TimezoneLocationID == id);
         }
         
     }

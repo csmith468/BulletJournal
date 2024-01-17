@@ -31,6 +31,9 @@ import { SublevelMenuComponent } from './components/layout/sidenav/sublevel-menu
 import { HeaderComponent } from './components/layout/header/header.component';
 import { LoginComponent } from './components/account/login/login.component';
 import { AboutComponent } from './components/static/about/about.component';
+import { ProfileComponent } from './components/account/profile/profile.component';
+import { DropdownInputComponent } from './components/layout/forms/dropdown-input/dropdown-input.component';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @NgModule({
   declarations: [
@@ -50,7 +53,9 @@ import { AboutComponent } from './components/static/about/about.component';
     SublevelMenuComponent,
     HeaderComponent,
     LoginComponent,
-    AboutComponent
+    AboutComponent,
+    ProfileComponent,
+    DropdownInputComponent
   ],
   imports: [
     BrowserModule,
@@ -68,7 +73,8 @@ import { AboutComponent } from './components/static/about/about.component';
     BsDatepickerModule.forRoot(),
     NgxSpinnerModule.forRoot({
       type: 'square-jelly-box'
-    })
+    }),
+    NgSelectModule
   ],
   providers: [
     {provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true},
