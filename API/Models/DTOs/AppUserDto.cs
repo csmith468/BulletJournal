@@ -1,6 +1,5 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace API.Models.DTOs {
+namespace API.Models.DTOs
+{
 
     public class AppUserDto {
         public int UserID { get; set; }
