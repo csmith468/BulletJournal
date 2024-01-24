@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { FormGroupComponent } from 'src/app/components/form-group/form-group.component';
 import { QuestionBase } from 'src/app/helpers/models/form-models/questionBase';
@@ -17,20 +17,40 @@ import { NightService } from 'src/app/helpers/services/form-sets/night.service';
 export class NightFormComponent {
   questions$: Observable<QuestionBase<any>[]>;
   payload: string = "";
+  mode: string = "add";
 
-  constructor(private nightService: NightService, private router: Router) {
-    this.questions$ = nightService.getQuestions();
+  constructor(private nightService: NightService, private router: Router, private route: ActivatedRoute) {
+    if (this.route.snapshot.data['night']) {
+      this.mode = 'edit';
+      this.questions$ = this.nightService.getQuestions(this.route.snapshot.data['night']);
+    } else {
+      this.questions$ = this.nightService.getQuestions();
+    }
+  }
+
+  cancelForm() {
+    this.router.navigateByUrl('/tables/night');
   }
 
   getSubmittedFormData(data: string) {
     this.payload = data;
-    this.submitNightChecklist();
+    if (this.mode == 'add') this.addNightEntry();
+    else this.updateNightEntry();
   }
 
-  submitNightChecklist() {
-    this.nightService.addNightChecklist(this.payload).subscribe({
+  addNightEntry() {
+    this.nightService.addNightEntry(this.payload).subscribe({
       next: () => {
-        this.router.navigateByUrl('/checklists');
+        this.router.navigateByUrl('/tables/night');
+      }
+    });
+  }
+
+  updateNightEntry() {
+    var id = this.route.snapshot.data['night'].nightChecklistID;
+    this.nightService.updateNightEntry(this.payload, id).subscribe({
+      next: () => {
+        this.router.navigateByUrl('/tables/night');
       }
     })
   }

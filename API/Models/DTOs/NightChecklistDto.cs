@@ -1,7 +1,6 @@
-namespace API.Models.Entities {
-    public class NightChecklist {
-        public int NightChecklistID { get; set; }
-        public int UserID { get; set; }
+namespace API.Models.DTOs
+{
+    public class NightChecklistDto {
         public DateOnly Date { get; set; }
         public bool? GlassOfWater { get; set; }
         public bool? Meds { get; set; }
@@ -9,5 +8,6 @@ namespace API.Models.Entities {
         public bool? WashFace { get; set; }
         public bool? Floss { get; set; }
         public bool? Retainer { get; set; }
+
     }
 }

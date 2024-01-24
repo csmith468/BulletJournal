@@ -1,30 +1,29 @@
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { MorningTable } from '../../models/data-models/morningTable';
+import { MorningEntry } from '../../models/data-models/morningEntry';
 import { PaginatedResult } from '../../models/data-models/pagination';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { MorningChecklist } from '../../models/data-models/morningChecklist';
 import { map, of } from 'rxjs';
 import { QuestionBase } from '../../models/form-models/questionBase';
-import { SwitchQuestion, createSwitchQuestion } from '../../models/form-models/switchQuestion';
-import { TextboxQuestion } from '../../models/form-models/textboxQuestion';
-import { DropdownQuestion, createDropdownQuestion } from '../../models/form-models/dropdownQuestion';
-import { DateQuestion, createDateQuestion } from '../../models/form-models/dateQuestion';
-import { getDate } from 'ngx-bootstrap/chronos/utils/date-getters';
-import { NightChecklist } from '../../models/data-models/nightChecklist';
+import { createSwitchQuestion } from '../../models/form-models/switchQuestion';
+import { createDateQuestion } from '../../models/form-models/dateQuestion';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MorningService {
   baseUrl = environment.apiUrl;
-  morningTable: MorningTable[] = [];
-  paginatedResultMorning: PaginatedResult<MorningTable[]> = new PaginatedResult<MorningTable[]>;
+  morningTable: MorningEntry[] = [];
+  paginatedResultMorning: PaginatedResult<MorningEntry[]> = new PaginatedResult<MorningEntry[]>;
 
   constructor(private http: HttpClient) { }
 
-  addMorningChecklist(model: any) {
-    return this.http.post(this.baseUrl + 'checklist/addMorning', model);
+  addMorningEntry(model: any) {
+    return this.http.post(this.baseUrl + 'morning/add', model);
+  }
+
+  updateMorningEntry(model: any, id:number) {
+    return this.http.put(this.baseUrl + 'morning/updateById/' + id.toString(), model);
   }
 
   getMorningTable(page?: number, itemsPerPage?: number) {
@@ -35,7 +34,7 @@ export class MorningService {
       params = params.append('pageSize', itemsPerPage);
     }
 
-    return this.http.get<MorningTable[]>(this.baseUrl + 'checklist/getMyMorningChecklists',
+    return this.http.get<MorningEntry[]>(this.baseUrl + 'morning/getMyChecklists',
       {observe: 'response', params}).pipe(map(
         response => {
           if (response.body) this.paginatedResultMorning.result = response.body;
@@ -46,15 +45,11 @@ export class MorningService {
       ))
   }
 
-  getMorningFormById(id: number) {
-    var morningItems = this.http.get<MorningChecklist[]>(this.baseUrl + 'checklist/getMyMorningChecklistById/' + id.toString());
-    // console.log(morningItems)
-    // return morningItems;
+  getMorningEntryById(id: string) {
+    return this.http.get<MorningEntry>(this.baseUrl + 'morning/getMyChecklistById/' + id);
   }
 
-  
-
-  getQuestions(morning?: MorningChecklist) {
+  getQuestions(morning?: MorningEntry) {
     const questions: QuestionBase<any>[] = [
       createDateQuestion('date', 'Date', true, morning),
       createSwitchQuestion('glassOfWater', 'Did you have a glass of water?', morning),

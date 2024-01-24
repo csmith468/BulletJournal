@@ -1,5 +1,9 @@
 <div>
     <app-form-group [questions]="questions$ | async" 
-        (payloadOutput)="getSubmittedFormData($event)">
+        [requiresUpdate]="mode == 'edit'"
+        formTitle="Night Entry"
+        (payloadOutput)="getSubmittedFormData($event)"
+        (cancel)="cancelForm()"
+    >
     </app-form-group>
 </div>

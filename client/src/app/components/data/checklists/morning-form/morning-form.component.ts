@@ -1,9 +1,9 @@
-import { AsyncPipe } from '@angular/common';
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Observable } from 'rxjs';
 import { FormGroupComponent } from 'src/app/components/form-group/form-group.component';
-import { MorningChecklist } from 'src/app/helpers/models/data-models/morningChecklist';
+import { MorningEntry } from 'src/app/helpers/models/data-models/morningEntry';
 import { QuestionBase } from 'src/app/helpers/models/form-models/questionBase';
 import { MorningService } from 'src/app/helpers/services/form-sets/morning.service';
 
@@ -13,29 +13,53 @@ import { MorningService } from 'src/app/helpers/services/form-sets/morning.servi
   templateUrl: './morning-form.component.html',
   styleUrls: ['./morning-form.component.css'],
   providers: [MorningService],
-  imports: [FormGroupComponent, AsyncPipe]
+  imports: [FormGroupComponent, AsyncPipe, CommonModule]
 })
-export class MorningFormComponent {
-  questions$: Observable<QuestionBase<any>[]>;
-  morningChecklist: MorningChecklist | undefined;
-  payload:string = "";
+export class MorningFormComponent implements OnInit {
+  questions$: Observable<QuestionBase<any>[]> | undefined;
+  payload: string = '';
+  mode: string = "add";
 
-  constructor(private morningService: MorningService, private router: Router) {
-    // this.morningChecklist = this.morningService.getMorningFormById(11);
-    this.questions$ = morningService.getQuestions();
+
+  constructor(private morningService: MorningService, private router: Router, private route: ActivatedRoute) {
+    if (this.route.snapshot.data['morning']) {
+      this.mode = 'edit';
+      this.questions$ = this.morningService.getQuestions(this.route.snapshot.data['morning']);
+    } else {
+      this.questions$ = this.morningService.getQuestions();
+    }
   }
 
-  getData(data:string) {
+  ngOnInit(): void {
+  }
+
+  cancelForm() {
+    this.router.navigateByUrl('/tables/morning');
+  }
+
+  getSubmittedFormData(data:string) {
     this.payload = data;
-    this.submitMorningChecklist();
+    if (this.mode == 'add') this.addMorningEntry();
+    else this.updateMorningEntry();
   }
 
 
-  submitMorningChecklist() {
-    this.morningService.addMorningChecklist(this.payload).subscribe({
+  addMorningEntry() {
+    this.morningService.addMorningEntry(this.payload).subscribe({
       next: () => {
-        this.router.navigateByUrl('/checklists');
+        this.router.navigateByUrl('/tables/morning');
       }
     });
-  };
+  }
+
+  updateMorningEntry() {
+    var id = this.route.snapshot.data['morning'].morningChecklistID;
+    this.morningService.updateMorningEntry(this.payload, id).subscribe({
+      next: () => {
+        this.router.navigateByUrl('/tables/morning');
+      }
+    })
+  }
+
+  
 }

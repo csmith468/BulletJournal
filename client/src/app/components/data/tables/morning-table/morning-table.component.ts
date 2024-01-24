@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { MorningTable } from 'src/app/helpers/models/data-models/morningTable';
+import { Router } from '@angular/router';
+import { MorningEntry } from 'src/app/helpers/models/data-models/morningEntry';
 import { Pagination } from 'src/app/helpers/models/data-models/pagination';
 import { MorningService } from 'src/app/helpers/services/form-sets/morning.service';
 
@@ -9,13 +10,13 @@ import { MorningService } from 'src/app/helpers/services/form-sets/morning.servi
   styleUrls: ['./morning-table.component.css']
 })
 export class MorningTableComponent implements OnInit {
-  morningTable: MorningTable[] = [];
+  morningTable: MorningEntry[] = [];
   pagination: Pagination | undefined;
-  columns: Array<keyof MorningTable> = ['date',  'glassOfWater',  'meds', 'vitamins', 'breakfast']
+  columns: Array<keyof MorningEntry> = ['date',  'glassOfWater',  'meds', 'vitamins', 'breakfast']
   pageNumber = 1;
   pageSize = 15;
 
-  constructor(private morningService: MorningService) {
+  constructor(private morningService: MorningService, private router: Router) {
 
   }
 
@@ -26,13 +27,16 @@ export class MorningTableComponent implements OnInit {
   loadData() {
     this.morningService.getMorningTable(this.pageNumber, this.pageSize).subscribe({
       next: response => {
-        console.log(<MorningTable>(response.result!.at(0)))
         if (response.result && response.pagination) {
-          this.morningTable = <MorningTable[]>response.result;
+          this.morningTable = <MorningEntry[]>response.result;
           this.pagination = response.pagination;
         }
       }
     })
+  }
+
+  editChecklist(row: MorningEntry) {
+    this.router.navigateByUrl('/checklists/morning/edit/' + row.morningChecklistID.toString());
   }
 
 }
