@@ -5,14 +5,17 @@ using AutoMapper;
 namespace API.Data.Helpers {
     public class AutoMapperProfiles : Profile {
         public AutoMapperProfiles() {
-            CreateMap<AppUser, AppUserDto>();
             CreateMap<DateTime, DateTime>().ConvertUsing(
                 d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
+
+            CreateMap<AppUser, AppUserDto>();
             CreateMap<AppUserUpdateDto, AppUser>();
+
             CreateMap<MorningChecklist, MorningChecklist>();
-            CreateMap<MorningChecklistDto, MorningChecklist>();
             CreateMap<NightChecklist, NightChecklist>();
-            CreateMap<NightChecklistDto, NightChecklist>();
+            CreateMap<DailyChecklist, DailyChecklist>();
+            CreateMap<WellbeingTracker, WellbeingTracker>();
+            CreateMap<PhysicalSymptoms, PhysicalSymptoms>();
         }
     }
 }

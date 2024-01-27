@@ -5,6 +5,7 @@ using API.Extensions;
 using API.Data.Helpers;
 using API.Data;
 using Microsoft.EntityFrameworkCore;
+using API.Models.Entities;
 
 namespace API.Extensions {
     public static class ApplicationServiceExtensions {
@@ -24,9 +25,7 @@ namespace API.Extensions {
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<ISleepRepository, SleepRepository>();
-            services.AddScoped<IMorningRepository, MorningRepository>();
-            services.AddScoped<INightRepository, NightRepository>();
+            services.AddScoped<IChecklistRepository, ChecklistRepository>();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
