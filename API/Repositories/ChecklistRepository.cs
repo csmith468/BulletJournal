@@ -61,5 +61,9 @@ namespace API.Data.Repositories {
             var dbSet = _contextEF.Set<T>();
             dbSet.Remove(checklist);
         }
+
+        public async Task<IEnumerable<QuestionSet>> GetQuestionSet<T>() where T : Checklist {
+            return await _contextEF.QuestionSets.Where(x => x.Source == typeof(T).Name).ToListAsync();
+        }
     }
 }
