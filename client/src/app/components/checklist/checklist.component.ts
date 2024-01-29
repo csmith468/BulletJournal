@@ -11,9 +11,11 @@ import { TextboxComponent } from '../form-questions/textbox/textbox.component';
 import { SwitchComponent } from '../form-questions/switch/switch.component';
 import { DropdownComponent } from '../form-questions/dropdown/dropdown.component';
 import { DatePickerComponent } from '../form-questions/date-picker/date-picker.component';
-import { createDateQuestion } from 'src/app/helpers/models/form-models/dateQuestion';
-import { createSwitchQuestion } from 'src/app/helpers/models/form-models/switchQuestion';
-import { createTextboxQuestion } from 'src/app/helpers/models/form-models/textboxQuestion';
+import { createSwitchQuestion } from '../form-questions/switch/switchQuestion';
+import { createTextboxQuestion } from '../form-questions/textbox/textboxQuestion';
+import { createDateQuestion } from '../form-questions/date-picker/dateQuestion';
+import { createSliderQuestion } from '../form-questions/slider/sliderQuestion';
+import { SliderComponent } from '../form-questions/slider/slider.component';
 
 @Component({
   standalone: true,
@@ -22,7 +24,7 @@ import { createTextboxQuestion } from 'src/app/helpers/models/form-models/textbo
   styleUrls: ['./checklist.component.css'],
   providers: [ChecklistService],
   imports: [AsyncPipe, CommonModule, ReactiveFormsModule, 
-    TextboxComponent, SwitchComponent, DropdownComponent, DatePickerComponent]
+    TextboxComponent, SwitchComponent, DropdownComponent, DatePickerComponent, SliderComponent]
 })
 export class ChecklistComponent implements OnInit {
   questions: QuestionBase<any>[] = [];
@@ -44,7 +46,10 @@ export class ChecklistComponent implements OnInit {
       qs => {
         qs.forEach(q => {
           if (q.type == 'switch') this.questions.push(createSwitchQuestion(q.key, q.question, routeData['checklist']))
-          if (q.type == 'textbox') this.questions.push(createTextboxQuestion(q.key, q.question, routeData['checklist']))
+          if (q.type == 'text' || q.type == 'number') {
+            this.questions.push(createTextboxQuestion(q.key, q.question, q.type, q.minValue, q.maxValue, routeData['checklist']))
+          }
+          if (q.type == 'slider') this.questions.push(createSliderQuestion(q.key, q.question, q.minValue, q.maxValue, routeData['checklist']))
         })
         this.questions.unshift(createDateQuestion('date', 'Date', true, routeData['checklist']));
         this.createForm();
@@ -57,8 +62,8 @@ export class ChecklistComponent implements OnInit {
   }
 
   createForm() {
-    this.form = this.qcs.toFormGroup(this.questions as QuestionBase<any>[]);
-    this.payload = JSON.stringify(this.updatePayload());
+    this.form = this.qcs.toFormGroup(this.questions);
+    this.payload = JSON.stringify(JSON.stringify(this.form!.getRawValue()));
     if (this.editMode) {
       this.originalPayload = JSON.stringify(this.updatePayload());
       this.changeMade = false;
@@ -103,8 +108,11 @@ export class ChecklistComponent implements OnInit {
     // all un-touched questions of type checkbox as false instead of empty string
     if (this.questions) {
       for (let q of this.questions) {
-        if (q.controlType == 'checkbox' && payloadJSON[q.key] === "") {
-          payloadJSON[q.key] = false;
+        if (q.controlType == 'checkbox' && payloadJSON[q.key] === "") payloadJSON[q.key] = false;
+        if (q.controlType == 'textbox' && !q.required && payloadJSON[q.key] === "") payloadJSON[q.key] = null;
+        if ((q.type == 'number' && payloadJSON[q.key] != "" && payloadJSON[q.key] != null && typeof(payloadJSON[q.key]) === 'number')
+            || payloadJSON[q.key] === 0) {
+          payloadJSON[q.key] = payloadJSON[q.key].toString();
         }
       }
     }

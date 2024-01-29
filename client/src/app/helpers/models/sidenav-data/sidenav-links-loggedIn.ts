@@ -27,7 +27,7 @@ export const sidenav_links_loggedIn: ISideNavData[] = [
                 label: 'Add Wellbeing',
             },
             {
-                routeLink: 'checklists/physicalSymptoms/add',
+                routeLink: 'checklists/physical/add',
                 icon: 'fa fa-heartbeat',
                 label: 'Add Physical Symptoms',
             },
@@ -78,7 +78,7 @@ export const sidenav_links_loggedIn: ISideNavData[] = [
                 label: 'View Wellbeing Tracker',
             },
             {
-                routeLink: 'tables/physicalSymptoms',
+                routeLink: 'tables/physical',
                 icon: 'fa fa-heartbeat',
                 label: 'View Physical Symptoms',
             },
@@ -103,6 +103,11 @@ export const sidenav_links_loggedIn: ISideNavData[] = [
                 routeLink: 'trends/night',
                 icon: 'fa fa-moon-o',
                 label: 'View Night Trends',
+            },
+            {
+                routeLink: 'trends/wellbeing',
+                icon: 'fa fa-smile-o',
+                label: 'View Wellbeing Tracker',
             },
             {
                 routeLink: 'trends/sleep',

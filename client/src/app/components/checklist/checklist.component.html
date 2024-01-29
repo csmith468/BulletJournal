@@ -8,6 +8,9 @@
                 <div *ngSwitchCase="'text'">
                     <app-textbox [question]="question" [form]="form"></app-textbox>
                 </div>
+                <div *ngSwitchCase="'number'">
+                    <app-textbox [question]="question" [form]="form"></app-textbox>
+                </div>
                 <div *ngSwitchCase="'dropdown'">
                     <app-dropdown [question]="question" [form]="form"></app-dropdown>
                 </div>  
@@ -16,6 +19,9 @@
                 </div>
                 <div *ngSwitchCase="'date'" >
                     <app-date-picker [question]="question" [form]="form"></app-date-picker>
+                </div>
+                <div *ngSwitchCase="'slider'" >
+                    <app-slider [question]="question" [form]="form"></app-slider>
                 </div>
             </div>
         </div>
@@ -31,7 +37,7 @@
             >Cancel</button>
         </div>
     </form>
-    <!-- <div *ngIf="payload" class="form-row">
+    <div *ngIf="payload" class="form-row">
         {{ payload }}
-    </div> -->
+    </div>
 </div>
