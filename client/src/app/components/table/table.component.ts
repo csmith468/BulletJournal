@@ -14,16 +14,15 @@ export class TableComponent implements OnInit {
   columns: Array<keyof any> = ['date']
   pageNumber = 1;
   pageSize = 10;
-  type: string = '';
+  source: string = '';
   header: string = 'Data';
 
   constructor(private checklistService: ChecklistService, private router: Router, private route: ActivatedRoute) {
-    this.type = this.route.snapshot.data['metadata']['type'];
-    var cols = checklistService.getColumns(this.type).subscribe(
+    this.source = this.route.snapshot.data['metadata']['source'];
+    var cols = checklistService.getColumns(this.source).subscribe(
         qs => qs.forEach(q => this.columns.push(q.key))
     );
-    this.header = this.type.charAt(0).toUpperCase() + this.type.slice(1) + ' Data';
-    if (this.type === 'physical') this.header = 'Physical Symptoms Data'
+    this.header = this.route.snapshot.data['metadata']['header'] + ' Data';
   }
 
   ngOnInit(): void {
@@ -31,7 +30,7 @@ export class TableComponent implements OnInit {
   }
 
   loadData() {
-    this.checklistService.getTable(this.type, this.pageNumber, this.pageSize).subscribe({
+    this.checklistService.getData(this.source, this.pageNumber, this.pageSize).subscribe({
       next: response => {
         if (response.result && response.pagination) {
           this.table = <any[]>response.result;
@@ -42,11 +41,11 @@ export class TableComponent implements OnInit {
   }
 
   editEntry(row: any) {
-    this.router.navigateByUrl('/checklists/'+ this.type + '/edit/' + row[this.type + 'ID'].toString());
+    this.router.navigateByUrl('/checklists/'+ this.source + '/edit/' + row[this.source + 'ID'].toString());
   }
 
   deleteEntry(row: any) {
-    this.checklistService.deleteEntry(this.type, row[this.type + 'ID']).subscribe({
+    this.checklistService.deleteEntry(this.source, row[this.source + 'ID']).subscribe({
       next: () => this.loadData()
     });
   }
@@ -56,5 +55,9 @@ export class TableComponent implements OnInit {
       this.pageNumber = event.page;
       this.loadData();
     }
+  }
+
+  viewTrends() {
+    this.router.navigateByUrl('/trends/' + this.source);
   }
 }

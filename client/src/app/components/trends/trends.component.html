@@ -1,0 +1,36 @@
+<div class="d-flex justify-content-between">
+  <h4 class="mt-2 mb-3">{{this.header}}</h4>
+  <div class="row">
+    <button class="btn btn-secondary" (click)="viewData()">View Data</button>
+    <button class="btn btn-success" (click)="addChart()"><i class="fa fa-plus"></i></button>
+  </div>
+</div>
+<div *ngIf="data && data.length > 0 && fields && fields.length > 0">
+  <div *ngFor="let chart of chartVisibility">
+    <div class="card" *ngIf="chart.visibility !== 'closed'">
+      <div class="row row-buttons">
+        <button class="btn btn-danger" (click)="closeChart(chart.chartNumber)">
+          <i class="fa fa-times"></i>
+        </button>
+        <button
+          *ngIf="chart.visibility === 'open'"
+          class="btn btn-warning"
+          (click)="minimizeChart(chart.chartNumber)">
+          <i class="fa fa-window-minimize"></i>
+        </button>
+        <button
+          *ngIf="chart.visibility === 'minimized'"
+          class="btn btn-info"
+          (click)="openChart(chart.chartNumber)">
+          <i class="fa fa-window-maximize"></i>
+        </button>
+      </div>
+      <app-chart
+        [data]="data"
+        [fields]="fields"
+        [typeDetailsInQuestionSet]="typeDetailsInQuestionSet"
+        [selectedRangeType]="initialRangeType"
+        [chartNumber]="chart.chartNumber"></app-chart>
+    </div>
+  </div>
+</div>

@@ -30,19 +30,23 @@ export class ChecklistComponent implements OnInit {
   questions: QuestionBase<any>[] = [];
   payload: string = '';
   editMode: boolean = false;
-  type: string = '';
+  source: string = '';
   form!: FormGroup;
   originalPayload = '';
   changeMade: boolean = true;
+  header: string = '';
   private readonly subscription = new Subscription();
 
   constructor(private checklistService: ChecklistService, private router: Router, 
     private route: ActivatedRoute, private qcs: QuestionControlService) 
   {
     const routeData = this.route.snapshot.data;
-    this.type = routeData['metadata']['type'];
+    this.source = routeData['metadata']['source'];
     if (routeData['checklist']) this.editMode = true;
-    this.checklistService.getQuestions(this.type, routeData['checklist']).subscribe(
+
+    this.header = this.editMode ? 'Edit ' : 'Add ' + this.route.snapshot.data['metadata']['header'] + ' Entry';
+
+    this.checklistService.getQuestions(this.source, routeData['checklist']).subscribe(
       qs => {
         qs.forEach(q => {
           if (q.type == 'switch') this.questions.push(createSwitchQuestion(q.key, q.question, routeData['checklist']))
@@ -70,11 +74,7 @@ export class ChecklistComponent implements OnInit {
       this.onChange();
     } 
   }
-
-  // ngOnDestroy(): void {
-  //   if (this.editMode) this.subscription.unsubscribe();
-  // }
-
+  
   //on change - run function to check validity, compare payload to original payload
   onChange() {
     const subscription = this.form!.valueChanges.subscribe(() => {
@@ -87,15 +87,21 @@ export class ChecklistComponent implements OnInit {
 
   cancelForm() {
     if (this.editMode) this.subscription.unsubscribe();
-    this.router.navigateByUrl('/tables/' + this.type);
+    this.router.navigateByUrl('/tables/' + this.source);
+  }
+
+  deleteEntry() {
+    this.checklistService.deleteEntry(this.source, this.route.snapshot.data['metadata']['id']).subscribe({
+      next: () => this.router.navigateByUrl('/tables/' + this.source)
+    });
   }
 
   submitForm() {
     this.payload = this.updatePayload();
     if (this.editMode) this.subscription.unsubscribe();
     var id = this.route.snapshot.data['metadata']['id'];
-    this.checklistService.addOrUpdateEntry(this.type, this.payload, id).subscribe({
-      next: () => this.router.navigateByUrl('/tables/' + this.type)
+    this.checklistService.addOrUpdateEntry(this.source, this.payload, id).subscribe({
+      next: () => this.router.navigateByUrl('/tables/' + this.source)
     })
   }
 

@@ -11,6 +11,7 @@ import { TableComponent } from './components/table/table.component';
 import { typeResolver } from './helpers/resolvers/type.resolver';
 import { ChecklistComponent } from './components/checklist/checklist.component';
 import { checklistResolver } from './helpers/resolvers/checklist.resolver';
+import { TrendsComponent } from './components/trends/trends.component';
 
 const routes: Routes = [
   {path: '', component: HomeComponent},
@@ -18,9 +19,10 @@ const routes: Routes = [
     runGuardsAndResolvers: 'always',
     canActivate: [authGuard],
     children: [
-      {path: 'checklists/:type/edit/:id', component: ChecklistComponent, resolve: {metadata: typeResolver, checklist: checklistResolver}},
-      {path: 'checklists/:type/add', component: ChecklistComponent, resolve: {metadata: typeResolver}},
-      {path: 'tables/:type', component: TableComponent, resolve: {metadata: typeResolver}},
+      {path: 'checklists/:source/edit/:id', component: ChecklistComponent, resolve: {metadata: typeResolver, checklist: checklistResolver}},
+      {path: 'checklists/:source/add', component: ChecklistComponent, resolve: {metadata: typeResolver}},
+      {path: 'tables/:source', component: TableComponent, resolve: {metadata: typeResolver}},
+      {path: 'trends/:source', component: TrendsComponent, resolve: {metadata: typeResolver}},
       {path: 'profile', component: ProfileComponent}
       // {path: 'members/:username', component: MemberDetailComponent, resolve: {member: memberDetailedResolver}},
       // {path: 'member/edit', component: MemberEditComponent, canDeactivate: [preventUnsavedChangesGuard]},
