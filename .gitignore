@@ -481,6 +481,7 @@ API/datingApp.db-shm
 API/datingApp.db-wal
 client/.angular/cache/*
 client/dist/
+SQL/Backups
 
 # SSL certificates
 *.pem
