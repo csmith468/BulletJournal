@@ -5,6 +5,8 @@ using AutoMapper;
 using API.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using API.Data.Pagination;
+using System.Dynamic;
+using System.Text.Json;
 
 namespace API.Controllers
 {
@@ -28,16 +30,56 @@ namespace API.Controllers
 
         //  (pageSize = -1 will return all entries)
         public async Task<ActionResult<PagedList<T>>> GetMyChecklists<T>(PageParams pageParams) where T : Checklist { 
+            var invisibleColumns = await _uow.ChecklistRepository.GetInvisibleColumnsAsync<T>(User.GetUserId());
             var checklists = await _uow.ChecklistRepository.GetListAsync<T>(User.GetUserId(), pageParams);
 
-            Response.AddPaginationHeader(new PaginationHeader(checklists.CurrentPage, checklists.PageSize, checklists.TotalCount,
-                checklists.TotalPages, checklists.MinDate, checklists.MaxDate));
+            var expandoList = checklists.Select(c => {
+                var expandoObj = new ExpandoObject() as IDictionary<string, Object>;
 
-            return Ok(checklists);
+                foreach (var prop in typeof(T).GetProperties()) {
+                    if (!invisibleColumns.Contains(prop.Name, StringComparer.OrdinalIgnoreCase)) {
+                        var camelCaseName = JsonNamingPolicy.CamelCase.ConvertName(prop.Name);
+                        expandoObj.Add(camelCaseName, prop.GetValue(c));
+                    }
+                }
+                return expandoObj;
+            }).ToList();
+
+            var minDateChecklist = await _uow.ChecklistRepository.GetMinDateEntry<T>(User.GetUserId());
+            var maxDateChecklist = await _uow.ChecklistRepository.GetMaxDateEntry<T>(User.GetUserId());
+
+            Response.AddPaginationHeader(new PaginationHeader(checklists.CurrentPage, checklists.PageSize, checklists.TotalCount,
+                checklists.TotalPages, minDateChecklist.Date, maxDateChecklist.Date, checklists.MinDate, checklists.MaxDate));
+
+            return Ok(expandoList);
         }
 
         public async Task<ActionResult<T>> GetMyChecklistById<T>(int id) where T : Checklist {
+            var invisibleColumns = await _uow.ChecklistRepository.GetInvisibleColumnsAsync<T>(User.GetUserId());
             var checklist = await _uow.ChecklistRepository.GetByIdAsync<T>(User.GetUserId(), id);
+
+            if (checklist == null) return NotFound();
+
+            var expandoObj = new ExpandoObject() as IDictionary<string, Object>;
+
+            foreach (var prop in typeof(T).GetProperties()) {
+                if (!invisibleColumns.Contains(prop.Name, StringComparer.OrdinalIgnoreCase)) {
+                    var camelCaseName = JsonNamingPolicy.CamelCase.ConvertName(prop.Name);
+                    expandoObj.Add(camelCaseName, prop.GetValue(checklist));
+                }
+            }
+
+            return Ok(expandoObj);
+        }
+
+        public async Task<ActionResult<T>> GetMinDateEntry<T>() where T : Checklist {
+            var checklist = await _uow.ChecklistRepository.GetMinDateEntry<T>(User.GetUserId());
+            if (checklist == null) return NotFound();
+            return Ok(checklist);
+        }
+
+        public async Task<ActionResult<T>> GetMaxDateEntry<T>() where T : Checklist {
+            var checklist = await _uow.ChecklistRepository.GetMaxDateEntry<T>(User.GetUserId());
             if (checklist == null) return NotFound();
             return Ok(checklist);
         }
@@ -69,19 +111,12 @@ namespace API.Controllers
         }
 
         public async Task<ActionResult<IEnumerable<QuestionSet>>> GetQuestionSet<T>() where T : Checklist {
+            var invisibleColumns = await _uow.ChecklistRepository.GetInvisibleColumnsAsync<T>(User.GetUserId());
             var questionSet = await _uow.ChecklistRepository.GetQuestionSet<T>();
             if (questionSet == null) return NotFound();
-            return Ok(questionSet);
+
+            var visibleQuestionSet = questionSet.Where(q => !invisibleColumns.Contains(q.Key, StringComparer.OrdinalIgnoreCase));
+            return Ok(visibleQuestionSet);
         }
-
-       
-        // public async Task<ActionResult<PagedList<T>>> GetMyChecklists<T>(PageParams pageParams) where T : Checklist {
-        //     var checklists = await _uow.ChecklistRepository.GetListAsync<T>(User.GetUserId(), pageParams);
-
-        //     Response.AddPaginationHeader(new PaginationHeader(checklists.CurrentPage, checklists.PageSize, checklists.TotalCount,
-        //         checklists.TotalPages, checklists.MinDate, checklists.MaxDate));
-
-        //     return Ok(checklists);
-        // }
     }
 }

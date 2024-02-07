@@ -5,15 +5,17 @@ using API.Data.Pagination;
 using API.Models.Entities;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 namespace API.Data.Repositories {
     public class ChecklistRepository : IChecklistRepository {
-        // private readonly DataContextDapper _contextDapper;
+        private readonly DataContextDapper _contextDapper;
         private readonly DataContextEF _contextEF;
         private readonly IMapper _mapper;
-        public ChecklistRepository(DataContextEF contextEF, IMapper mapper) {
+        public ChecklistRepository(DataContextEF contextEF, IMapper mapper, DataContextDapper contextDapper) {
             _contextEF = contextEF;
             _mapper = mapper;
+            _contextDapper = contextDapper;
         }
 
         public async Task<T> AddAsync<T>(T item) where T : Checklist {
@@ -30,9 +32,15 @@ namespace API.Data.Repositories {
 
         public async Task<PagedList<T>> GetListAsync<T>(int userId, PageParams pageParams) where T : Checklist {
             var dbSet = _contextEF.Set<T>();
-            var query = dbSet.Where(x => x.UserID == userId)
-                .OrderByDescending(x => x.Date)
-                .AsNoTracking();
+
+            var query = dbSet.AsQueryable();
+            query = query.Where(x => x.UserID == userId).OrderByDescending(x => x.Date);
+
+            if (pageParams.MinDate != null) query = query.Where(x => x.Date >= pageParams.MinDate);
+            if (pageParams.MaxDate != null) query = query.Where(x => x.Date <= pageParams.MaxDate);
+
+            query = query.AsNoTracking();
+            
             return await PagedList<T>.CreateAsync(query, pageParams.PageNumber, pageParams.PageSize); // pageSize = -1 will return all entries on one page
         }
 
@@ -57,6 +65,16 @@ namespace API.Data.Repositories {
             return await dbSet.Where(x => x.UserID == userId).Where(whereLambda).SingleOrDefaultAsync();
         }
 
+        public async Task<T> GetMinDateEntry<T>(int userID) where T : Checklist {
+            var dbSet = _contextEF.Set<T>();
+            return await dbSet.Where(x => x.UserID == userID).OrderBy(x => x.Date).FirstOrDefaultAsync();
+        }
+
+        public async Task<T> GetMaxDateEntry<T>(int userID) where T : Checklist {
+            var dbSet = _contextEF.Set<T>();
+            return await dbSet.Where(x => x.UserID == userID).OrderByDescending(x => x.Date).FirstOrDefaultAsync();
+        }
+
         public void DeleteChecklist<T>(T checklist) where T : Checklist {
             var dbSet = _contextEF.Set<T>();
             dbSet.Remove(checklist);
@@ -65,5 +83,41 @@ namespace API.Data.Repositories {
         public async Task<IEnumerable<QuestionSet>> GetQuestionSet<T>() where T : Checklist {
             return await _contextEF.QuestionSets.Where(x => x.Source == typeof(T).Name).ToListAsync();
         }
+
+        public async Task<IEnumerable<string>> GetInvisibleColumnsAsync<T>(int userId) where T : Checklist {
+            return await _contextEF.QuestionPreferences
+                .Where(p => p.UserID == userId && p.TableName == typeof(T).Name && p.IsColumnVisible == false)
+                .Select(p => p.ColumnName)
+                .ToListAsync();
+        }
+
+
+        public async Task<IEnumerable<CompletedChecklists>> GetCompletedChecklistsPerDay(int userId) {
+            List<string> tables = await _contextEF.TablePreferences
+                .Where(t => t.UserID == userId && t.IsTableVisible == true)
+                .Select(t => t.TableName).ToListAsync();
+
+            string sql = "";
+            for (var i = 0; i < tables.Count; i++) {
+                sql += @$"
+                SELECT '{tables[i]}' AS TableName,
+                    ISNULL([category].[DisplayName] + ' ', '') + [tables].[DisplayName] AS TableLabel,
+                    CAST([app_sys].GetUTCInUserTimezone(GETUTCDATE(), [user].[UserID]) AS Date) AS [Date],
+                    [{tables[i]}].[{tables[i]}ID] AS ID
+                FROM [app_sys].[user]
+                LEFT JOIN [app].[{tables[i]}] ON [{tables[i]}].[UserID] = [user].[UserID] 
+                    AND [{tables[i]}].[Date] = CAST([app_sys].GetUTCInUserTimezone(GETUTCDATE(), [user].[UserID]) AS Date)
+                LEFT JOIN [app_sys].[tables] ON [tables].[key] = '{tables[i]}'
+                LEFT JOIN [app_sys].[tables] [category] ON [category].[key] = [tables].[category]
+                AND [user].[UserID] = {userId} 
+                ";
+                if (i < tables.Count - 1) {
+                    sql += " UNION ALL ";
+                }
+            }
+
+            return await _contextDapper.QueryAsync<CompletedChecklists>(sql);
+        }
+
     }
 }

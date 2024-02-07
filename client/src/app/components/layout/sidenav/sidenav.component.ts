@@ -1,12 +1,12 @@
 import { Component, EventEmitter, HostListener, OnInit, Output } from '@angular/core';
 import { animate, keyframes, style, transition, trigger } from '@angular/animations';
-import { ISideNavData } from '../../../helpers/models/sidenav-data/sidenav-ISideNavData';
+import { ISideNavData } from '../../../helpers/models/sidenav-data/ISideNavData';
 import { AccountService } from 'src/app/helpers/services/account.service';
 import { sidenav_fadeInOut } from './sidenav-styling/sidenav-fadeInOut';
 import { SideNavToggle } from './sidenav-styling/sidenav-toggle';
-import { sidenav_links_loggedIn } from '../../../helpers/models/sidenav-data/sidenav-links-loggedIn';
 import { Router } from '@angular/router';
 import { sidenav_links_loggedOut } from '../../../helpers/models/sidenav-data/sidenav-links-loggedOut';
+import { SettingsService } from 'src/app/helpers/services/settings.service';
 
 @Component({
   selector: 'app-sidenav',
@@ -29,9 +29,9 @@ export class SidenavComponent implements OnInit {
   @Output() onToggleSideNav: EventEmitter<SideNavToggle> = new EventEmitter();
   navOpen = false;
   screenWidth = 0;
-  navData_loggedIn = sidenav_links_loggedIn;
+  navData_loggedIn: ISideNavData[] = [];
   navData_loggedOut = sidenav_links_loggedOut;
-  multiple: boolean = false;
+  expandedItem: string | null = null;
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -45,10 +45,19 @@ export class SidenavComponent implements OnInit {
     }
   }
 
-  constructor(public accountService: AccountService, public router: Router) { }
+  constructor(public settingsService: SettingsService, public accountService: AccountService, 
+    public router: Router) {
+      this.settingsService.sideNav$.subscribe(navData => {
+        if ((this.accountService.currentUser$)) this.navData_loggedIn = navData;
+      })
+  }
 
   ngOnInit(): void {
     this.screenWidth = window.innerWidth;
+  }
+
+  isExpanded(label: string) {
+    return (label == this.expandedItem);
   }
 
   toggleCollapse() {
@@ -63,27 +72,23 @@ export class SidenavComponent implements OnInit {
 
   closeSideNav() {
     this.navOpen = false;
+    this.expandedItem = '';
     this.emitToggleSideNav();
   }
 
   handleClick(item: ISideNavData) {
-    this.shrinkItems(item);
+    // event.preventDefault();
     if (!this.navOpen) {
       this.navOpen = true;
       this.emitToggleSideNav();
     }
-    item.expanded = !item.expanded;
+    if (this.expandedItem == item.label) this.expandedItem = null;
+    else this.expandedItem = item.label;
   }
 
-  shrinkItems(item: ISideNavData) {
-    if (!this.multiple) {
-      for(let modelItem of (this.accountService.currentUser$) ? this.navData_loggedIn : this.navData_loggedOut) {
-        if (item !== modelItem && modelItem.expanded) {
-          modelItem.expanded = false;
-        }
-      }
-    }
-  }
+  // shrinkItems(item: ISideNavData) {
+  //   this.expandedItem = 
+  // }
 
   getActiveClass(data: ISideNavData) {
     return this.router.url.includes(data.routeLink) ? 'sub-active' : '';

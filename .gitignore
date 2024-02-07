@@ -484,6 +484,7 @@ client/dist/
 SQL/Backups
 ios/
 android/
+client/src/assets
 
 # SSL certificates
 *.pem

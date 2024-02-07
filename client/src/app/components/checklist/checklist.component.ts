@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ChecklistService } from 'src/app/helpers/services/checklist.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { QuestionBase } from 'src/app/helpers/models/form-models/questionBase';
@@ -6,7 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { QuestionControlService } from 'src/app/helpers/services/question-control.service';
-import { getDateOnly } from 'src/app/helpers/getDateOnlyFn';
+import { getDateOnly } from 'src/app/helpers/functions/getDateOnlyFn';
 import { TextboxComponent } from '../form-questions/textbox/textbox.component';
 import { SwitchComponent } from '../form-questions/switch/switch.component';
 import { DropdownComponent } from '../form-questions/dropdown/dropdown.component';
@@ -27,13 +27,16 @@ import { SliderComponent } from '../form-questions/slider/slider.component';
     TextboxComponent, SwitchComponent, DropdownComponent, DatePickerComponent, SliderComponent]
 })
 export class ChecklistComponent implements OnInit {
+  @HostListener('window:beforeunload', ['$event']) unloadNotification($event: any) {
+    if (this.changeMade && this.form.dirty) $event.returnValue = true;
+  }
   questions: QuestionBase<any>[] = [];
   payload: string = '';
   editMode: boolean = false;
   source: string = '';
   form!: FormGroup;
   originalPayload = '';
-  changeMade: boolean = true;
+  changeMade: boolean = false;
   header: string = '';
   private readonly subscription = new Subscription();
 
@@ -68,11 +71,9 @@ export class ChecklistComponent implements OnInit {
   createForm() {
     this.form = this.qcs.toFormGroup(this.questions);
     this.payload = JSON.stringify(JSON.stringify(this.form!.getRawValue()));
-    if (this.editMode) {
-      this.originalPayload = JSON.stringify(this.updatePayload());
-      this.changeMade = false;
-      this.onChange();
-    } 
+    this.originalPayload = JSON.stringify(this.updatePayload());
+    this.changeMade = false;
+    this.onChange();
   }
   
   //on change - run function to check validity, compare payload to original payload
@@ -87,12 +88,12 @@ export class ChecklistComponent implements OnInit {
 
   cancelForm() {
     if (this.editMode) this.subscription.unsubscribe();
-    this.router.navigateByUrl('/tables/' + this.source);
+    this.router.navigateByUrl('/data/' + this.source);
   }
 
   deleteEntry() {
     this.checklistService.deleteEntry(this.source, this.route.snapshot.data['metadata']['id']).subscribe({
-      next: () => this.router.navigateByUrl('/tables/' + this.source)
+      next: () => this.router.navigateByUrl('/data/' + this.source)
     });
   }
 
@@ -101,7 +102,10 @@ export class ChecklistComponent implements OnInit {
     if (this.editMode) this.subscription.unsubscribe();
     var id = this.route.snapshot.data['metadata']['id'];
     this.checklistService.addOrUpdateEntry(this.source, this.payload, id).subscribe({
-      next: () => this.router.navigateByUrl('/tables/' + this.source)
+      next: () => {
+        this.changeMade = false;  // disables guard
+        this.router.navigateByUrl('/data/' + this.source);
+      }
     })
   }
 

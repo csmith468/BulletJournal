@@ -10,12 +10,19 @@ namespace API.Data.Helpers {
 
             CreateMap<AppUser, AppUserDto>();
             CreateMap<AppUserUpdateDto, AppUser>();
+            CreateMap<QuestionPreferences, QuestionPreferences>();
+            CreateMap<TablePreferences, TablePreferences>();
 
             CreateMap<Morning, Morning>();
             CreateMap<Night, Night>();
             CreateMap<Daily, Daily>();
             CreateMap<Wellbeing, Wellbeing>();
             CreateMap<Physical, Physical>();
+
+            CreateMap<SpendingFinancial, SpendingFinancial>();
+            CreateMap<SpendingHealthcare, SpendingHealthcare>();
+            CreateMap<SpendingPersonal, SpendingPersonal>();
+            CreateMap<SpendingRegular, SpendingRegular>();
         }
     }
 }

@@ -6,6 +6,8 @@ using API.Data.Helpers;
 using API.Data;
 using Microsoft.EntityFrameworkCore;
 using API.Models.Entities;
+using System.Data;
+using Microsoft.Data.SqlClient;
 
 namespace API.Extensions {
     public static class ApplicationServiceExtensions {
@@ -33,8 +35,13 @@ namespace API.Extensions {
             });
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<ISettingsRepository, SettingsRepository>();
             services.AddScoped<IChecklistRepository, ChecklistRepository>();
+
+            services.AddTransient<IDbConnection>(c => 
+                new SqlConnection(config.GetConnectionString("DefaultConnection")));
+            services.AddTransient<DataContextDapper>();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
