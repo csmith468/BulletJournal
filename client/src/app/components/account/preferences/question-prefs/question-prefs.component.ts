@@ -3,8 +3,9 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
 import { Subscription } from 'rxjs';
-import { QuestionPrefDto, QuestionPreferences } from 'src/app/helpers/models/data-models/questionPreferences';
-import { SettingsService } from 'src/app/helpers/services/settings.service';
+import { QuestionPrefDto, QuestionPreferences } from 'src/app/models/data-models/questionPreferences';
+import { MetadataService } from 'src/app/services/http/metadata.service';
+import { PreferencesService } from 'src/app/services/http/preferences.service';
 
 @Component({
   selector: 'app-question-prefs',
@@ -15,21 +16,23 @@ export class QuestionPrefsComponent implements OnDestroy {
   @ViewChild('questionTabs') questionTabs!: TabsetComponent;
 
   activeTab?: TabDirective;
-  tableNames: { [key: string]: string } = {};
+  checklistTypeNames: { [key: string]: string } = {};
   activeTabName: string = '';
   questions: QuestionPreferences[] = [];
   form!: FormGroup;
-  private readonly subscription = new Subscription();
+  private subscription: Subscription | undefined;
   payload: string = '';
   originalPayload: string = '';
   changeMade: boolean = false;
 
-  constructor(private settingsService: SettingsService, private router: Router) {
-    this.settingsService.getMyTables().subscribe(
-      tables => {
-        tables.forEach(t => {
-          this.tableNames[t.displayName] = t.key;
-          if (this.activeTabName == '') this.activeTabName = t.displayName
+  constructor(private preferencesService: PreferencesService, private router: Router,
+      private metadataService: MetadataService) {
+    // get all checklistTypes for tab headers
+    this.metadataService.getVisibleChecklistTypes().subscribe(
+      checklistTypes => {
+        checklistTypes.forEach(ct => {
+          this.checklistTypeNames[ct.label] = ct.key;
+          if (this.activeTabName == '') this.activeTabName = ct.label
         })
         this.getData();
       }
@@ -37,9 +40,10 @@ export class QuestionPrefsComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    if (this.subscription) this.subscription.unsubscribe();
   }
 
+  // get questions for selected checklist tab
   onTabActivated(data: TabDirective) {
     this.activeTab = data;
     this.activeTabName = data.heading!;
@@ -51,12 +55,14 @@ export class QuestionPrefsComponent implements OnDestroy {
     const group: any = {};
     this.questions = [];
 
-    this.settingsService.getQuestionPreferences(this.tableNames[this.activeTabName]).subscribe(
+    this.preferencesService.getQuestionPreferences(this.checklistTypeNames[this.activeTabName]).subscribe(
       columns => {
         columns.forEach(
           c => {
-            group[c.columnName] = new FormControl(c.isColumnVisible);
-            this.questions.push(c);
+            if (c.key !== 'date') {
+              group[c.key] = new FormControl(c.isVisible);
+              this.questions.push(c);
+            }
           }
         )
         this.form = new FormGroup(group);
@@ -67,6 +73,7 @@ export class QuestionPrefsComponent implements OnDestroy {
     )
   }
 
+  // update preferences for checklist type's questions
   submitForm() {
     var finalPrefs: QuestionPrefDto[] = [];
 
@@ -74,16 +81,16 @@ export class QuestionPrefsComponent implements OnDestroy {
       const control = this.form.get(c);
 
       if (control && control.dirty) {
-        const question = this.questions.find(q => q.tableName == this.tableNames[this.activeTabName]
-            && q.columnName == c);
-        if (question && question.isColumnVisible != control.value) {
-          question.isColumnVisible = control.value;
-          finalPrefs.push({questionPreferencesID: question.questionPreferencesID, isColumnVisible: control.value});
+        const question = this.questions.find(q => q.checklistTypeName == this.checklistTypeNames[this.activeTabName]
+            && q.key == c);
+        if (question && question.isVisible != control.value) {
+          question.isVisible = control.value;
+          finalPrefs.push({questionPreferencesID: question.questionPreferencesID, isVisible: control.value});
         }
       }
     })
     if (finalPrefs.length > 0) {
-      this.settingsService.updateQuestionPreferences(finalPrefs).subscribe({
+      this.preferencesService.updateQuestionPreferences(finalPrefs).subscribe({
         next: () => this.getData()
       })
     }
@@ -93,14 +100,17 @@ export class QuestionPrefsComponent implements OnDestroy {
     this.getData();
   }
 
-  //on change - compare payload to original payload
+  // on change - compare payload to original payload to determine if changes have been made (if no changes are made, disable submit)
   onChange() {
-    const subscription = this.form!.valueChanges.subscribe(() => {
+    // if it makes it here and subscription exists, reset subscription
+    if (this.subscription) this.subscription.unsubscribe();
+    this.changeMade = false;
+    
+    this.subscription = this.form!.valueChanges.subscribe(() => {
       this.payload = JSON.stringify(JSON.stringify(this.form!.getRawValue()));
       if (this.payload != this.originalPayload) this.changeMade = true;
       else this.changeMade = false;
     })
-    this.subscription.add(subscription);
   }
 
   markAllTrue() {

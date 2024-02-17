@@ -5,14 +5,14 @@
       <form [formGroup]="dateForm">
         <div class="form-row">
           <app-date-picker
-            [question]="startDateInput!"
+            [item]="startDateInput!"
             [form]="dateForm"
             [minDate]="minDate"
             [maxDate]="maxDate"
             [validityCheck]="false"
             class="date-input"></app-date-picker>
           <app-date-picker
-            [question]="endDateInput!"
+            [item]="endDateInput!"
             [form]="dateForm"
             [minDate]="minDate"
             [maxDate]="maxDate"
@@ -40,8 +40,8 @@
     <table class="table table-striped">
       <thead>
         <tr>
-          <th *ngFor="let column of columns">
-            {{ column }}
+          <th *ngFor="let q of questions" ngClass="{{q.key == 'date' ? 'date-col' : ''}}">
+            {{ q.label }}
           </th>
           <th>Edit</th>
           <th>Delete</th>
@@ -49,8 +49,10 @@
       </thead>
       <tbody>
         <tr *ngFor="let data of table">
-          <td *ngFor="let column of columns">
-            {{ data[column] }}
+          <td *ngFor="let q of questions">
+            {{  q.kindBase == 'switch' ? (data[q.key] == 1) 
+                : q.kindBase == 'number' ? (data[q.key] | number) 
+                : data[q.key] }}
           </td>
           <td>
             <div class="edit-button">
@@ -70,7 +72,11 @@
       </tbody>
     </table>
   </div>
-  <div class="d-flex justify-content-center" *ngIf="pagination">
+  <div class="d-flex justify-content-center" *ngIf="pagination && pagination.currentPage">
+    <ul class="pagination">
+      
+    </ul>
+
     <pagination
       [boundaryLinks]="true"
       [totalItems]="pagination.totalItems"

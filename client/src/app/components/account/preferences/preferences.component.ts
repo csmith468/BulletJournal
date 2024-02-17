@@ -1,9 +1,8 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
-import { QuestionPreferences } from 'src/app/helpers/models/data-models/questionPreferences';
-import { AccountService } from 'src/app/helpers/services/account.service';
-import { SettingsService } from 'src/app/helpers/services/settings.service';
+import { TabDirective } from 'ngx-bootstrap/tabs';
+import { QuestionPreferences } from 'src/app/models/data-models/questionPreferences';
+import { PreferencesService } from 'src/app/services/http/preferences.service';
 
 @Component({
   selector: 'app-preferences',
@@ -17,32 +16,32 @@ export class PreferencesComponent {
   questions: QuestionPreferences[] = [];
   form!: FormGroup;
 
-  constructor(private settingsService: SettingsService) {
-    this.settingsService.changeQuestionPreferencesSource(this.activeTabName);
+  constructor(private preferencesService: PreferencesService) {
+    this.preferencesService.changeQuestionPreferencesSource(this.activeTabName);
   }
 
   onTabActivated(data: TabDirective) {
     this.activeTab = data;
     this.activeTabName = data.heading!;
-    this.getData();
+    // this.getData();
 
     // if (this.activeTab.heading === 'Messages') {
   }
 
-  getData() {
-    const group: any = {};
-    this.form = new FormGroup(group);
+  // getData() {
+  //   const group: any = {};
+  //   this.form = new FormGroup(group);
 
-    this.settingsService.getQuestionPreferences(this.activeTabName).subscribe(
-      columns => {
-        columns.forEach(
-          c => {
-            group[c.columnName] = new FormControl(c.isColumnVisible);
-            this.questions.push(c);
-          }
-        )
-        this.form = new FormGroup(group);
-      }
-    )
-  }
+  //   this.preferencesService.getQuestionPreferences(this.activeTabName).subscribe(
+  //     columns => {
+  //       columns.forEach(
+  //         c => {
+  //           group[c.key] = new FormControl(c.key);
+  //           this.questions.push(c);
+  //         }
+  //       )
+  //       this.form = new FormGroup(group);
+  //     }
+  //   )
+  // }
 }

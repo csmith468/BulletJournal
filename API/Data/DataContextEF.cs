@@ -1,31 +1,39 @@
 using API.Data.Helpers;
-using API.Models.DTOs;
-using API.Models.Entities;
+using API.Models.Tables.Entities;
+using API.Models.Views.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Data
 {
     public class DataContextEF: DbContext {
-
         private readonly IConfiguration _config;
 
         public DataContextEF(IConfiguration config) {
             _config = config;
         }
 
+        // Metadata tables/views related to user 
         public DbSet<AppUser> AppUsers { get; set; }
         public DbSet<QuestionPreferences> QuestionPreferences { get; set; }
-        public DbSet<TablePreferences> TablePreferences { get; set; }
-        public DbSet<TimezoneLocation> TimezoneLocations { get; set; }
-        public DbSet<QuestionSet> QuestionSets { get; set; }
-        public DbSet<Tables> Tables { get; set; }
+        public DbSet<ChecklistTypePreferences> ChecklistTypePreferences { get; set; }
+        // public DbSet<HiddenQuestions> HiddenQuestions { get; set; }
+
+        public DbSet<QuestionPreferencesView> QuestionPreferencesView { get; set; }
+        public DbSet<ChecklistTypePreferencesView> ChecklistTypePreferencesView { get; set; }
+
+
+        // Static tables/views
+        public DbSet<QuestionKindView> QuestionKindsView { get; set; }
+        public DbSet<ChecklistTypeView> ChecklistTypesView { get; set; }
+        public DbSet<TimezoneLocationView> TimezoneLocationsView { get; set; }
         
-        public DbSet<Morning> Mornings { get; set; }
-        public DbSet<Night> Nights { get; set; }
-        public DbSet<Daily> Dailies { get; set; }
+        // Checklist data
+        public DbSet<Morning> Morning { get; set; }
+        public DbSet<Night> Night { get; set; }
+        public DbSet<Daily> Daily { get; set; }
         public DbSet<Wellbeing> Wellbeing { get; set; }
-        public DbSet<Physical> Physicals { get; set; }
-        public DbSet<Sleep> Sleep { get; set; }
+        public DbSet<Physical> Physical { get; set; }
+        // public DbSet<Sleep> Sleep { get; set; }
 
         public DbSet<SpendingFinancial> SpendingFinancial { get; set; }
         public DbSet<SpendingHealthcare> SpendingHealthcare { get; set; }
@@ -41,39 +49,54 @@ namespace API.Data
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
-            modelBuilder.Entity<AppUser>().ToTable("user", "app_sys").HasKey(u => u.UserID);
-            modelBuilder.Entity<QuestionPreferences>().ToTable("questionPreferences", "app_sys")
-                .HasKey(u => u.QuestionPreferencesID);
-            modelBuilder.Entity<TablePreferences>().ToTable("tablePreferences", "app_sys")
-                .HasKey(u => u.TablePreferencesID);
-            modelBuilder.Entity<QuestionSet>().ToTable("questions", "app_sys")
-                .HasKey(u => u.QuestionID);
-            modelBuilder.Entity<Tables>().ToTable("tables", "app_sys")
-                .HasKey(u => u.TableID);
 
-            modelBuilder.Entity<Morning>().ToTable("morning", "app")
-                .HasKey(u => u.MorningID);
-            modelBuilder.Entity<Night>().ToTable("night", "app")
-                .HasKey(u => u.NightID);
-            modelBuilder.Entity<Daily>().ToTable("daily", "app")
-                .HasKey(u => u.DailyID);
-            modelBuilder.Entity<Wellbeing>().ToTable("wellbeing", "app")
-                .HasKey(u => u.WellbeingID);
-            modelBuilder.Entity<Physical>().ToTable("physical", "app")
-                .HasKey(u => u.PhysicalID);
+            // Metadata tables related to user 
+            modelBuilder.Entity<AppUser>().ToTable("user", "app")
+                .HasKey(u => u.userID);
+            modelBuilder.Entity<QuestionPreferences>().ToTable("questionPreferences", "app")
+                .HasKey(u => u.questionPreferencesID);
+            modelBuilder.Entity<ChecklistTypePreferences>().ToTable("checklistTypePreferences", "app")
+                .HasKey(u => u.checklistTypePreferencesID);
+            // modelBuilder.Entity<HiddenQuestions>().ToTable("hiddenQuestions", "app")
+            //     .HasKey(u => u.hiddenQuestionID);
 
-            modelBuilder.Entity<SpendingFinancial>().ToTable("spendingFinancial", "app")
-                .HasKey(u => u.SpendingFinancialID);
-            modelBuilder.Entity<SpendingHealthcare>().ToTable("spendingHealthcare", "app")
-                .HasKey(u => u.SpendingHealthcareID);
-            modelBuilder.Entity<SpendingPersonal>().ToTable("spendingPersonal", "app")
-                .HasKey(u => u.SpendingPersonalID);
-            modelBuilder.Entity<SpendingRegular>().ToTable("spendingRegular", "app")
-                .HasKey(u => u.SpendingRegularID);
-            modelBuilder.Entity<Sleep>().ToTable("sleep", "app").HasKey(u => u.SleepID);
+            // Metadata views related to user
+            modelBuilder.Entity<QuestionPreferencesView>().ToView("v_questionPreferences", "app")
+                .HasKey(q => q.questionPreferencesID);
+            modelBuilder.Entity<ChecklistTypePreferencesView>().ToView("v_checklistTypePreferences", "app")
+                .HasKey(t => t.checklistTypePreferencesID);
 
-            modelBuilder.Entity<TimezoneLocation>().ToView("v_timezoneLocation", "dbo")
-                .HasKey(u => u.TimezoneLocationID);
+            // Static views
+            modelBuilder.Entity<QuestionKindView>().ToView("v_questionKind", "app_sys")
+                .HasKey(u => u.questionKindID);
+            modelBuilder.Entity<ChecklistTypeView>().ToView("v_checklistType", "app_sys")
+                .HasKey(u => u.checklistTypeID);
+            modelBuilder.Entity<TimezoneLocationView>().ToView("v_timezoneLocation", "app_sys")
+                .HasKey(u => u.timezoneLocationID);
+
+
+            // Checklist data
+            modelBuilder.Entity<Morning>().ToTable("morning", "checklist")
+                .HasKey(u => u.id);
+            modelBuilder.Entity<Night>().ToTable("night", "checklist")
+                .HasKey(u => u.id);
+            modelBuilder.Entity<Daily>().ToTable("daily", "checklist")
+                .HasKey(u => u.id);
+            modelBuilder.Entity<Wellbeing>().ToTable("wellbeing", "checklist")
+                .HasKey(u => u.id);
+            modelBuilder.Entity<Physical>().ToTable("physical", "checklist")
+                .HasKey(u => u.id);
+            // modelBuilder.Entity<Sleep>().ToTable("sleep", "app")
+            //     .HasKey(u => u.SleepID);
+
+            modelBuilder.Entity<SpendingFinancial>().ToTable("spendingFinancial", "checklist")
+                .HasKey(u => u.id);
+            modelBuilder.Entity<SpendingHealthcare>().ToTable("spendingHealthcare", "checklist")
+                .HasKey(u => u.id);
+            modelBuilder.Entity<SpendingPersonal>().ToTable("spendingPersonal", "checklist")
+                .HasKey(u => u.id);
+            modelBuilder.Entity<SpendingRegular>().ToTable("spendingRegular", "checklist")
+                .HasKey(u => u.id);
         }
 
         protected override void ConfigureConventions(ModelConfigurationBuilder builder) {

@@ -1,8 +1,10 @@
 using API.Data.Interfaces;
-using API.Models.Entities;
+using API.Models.Tables.Entities;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
-namespace API.Data.Repositories {
+namespace API.Data.Repositories
+{
     public class UnitOfWork : IUnitOfWork {
         private readonly DataContextDapper _contextDapper;
         private readonly DataContextEF _contextEF;
@@ -15,10 +17,18 @@ namespace API.Data.Repositories {
         }
 
         public IAccountRepository AccountRepository => new AccountRepository(_contextEF, _mapper);
-        public ISettingsRepository SettingsRepository => new SettingsRepository(_contextEF, _mapper, _contextDapper);
-        public IChecklistRepository ChecklistRepository => new ChecklistRepository(_contextEF, _mapper, _contextDapper);
+        public IChecklistRepository<T> GetChecklistRepository<T>() where T : Checklist {
+            return new ChecklistRepository<T>(_contextEF, _mapper, _contextDapper);
+        }        
+        public IMetadataRepository MetadataRepository => new MetadataRepository(_contextEF, _mapper);
+        public IPreferencesRepository PreferencesRepository => new PreferencesRepository(_contextEF, _mapper, _contextDapper);
+        public IStaticRepository StaticRepository => new StaticRepository(_contextEF, _mapper);
+        
         public async Task<bool> Complete() {
             var r = HasChanges();
+
+            AddCreatedOrModifiedDate();
+
             var result = await _contextEF.SaveChangesAsync();
             return result > 0;
         }
@@ -26,5 +36,23 @@ namespace API.Data.Repositories {
         public bool HasChanges() {
             return _contextEF.ChangeTracker.HasChanges();
         }
+
+        // If entity is of type BaseEntity (meaning it has CreatedDatetime and ModifiedDatetime fields, 
+            // update those based on if adding or modifying)
+        private void AddCreatedOrModifiedDate() {
+            var entries = _contextEF.ChangeTracker.Entries()
+                .Where(e => e.Entity is BaseEntity && (
+                    e.State == EntityState.Added || e.State == EntityState.Modified
+                ));
+
+            foreach (var entity in entries) {
+                if (entity.State == EntityState.Added || (entity.State == EntityState.Modified && ((BaseEntity)entity.Entity).createdDatetime == null)) {
+                    ((BaseEntity)entity.Entity).createdDatetime = DateTime.UtcNow;
+                } else {
+                    ((BaseEntity)entity.Entity).modifiedDatetime = DateTime.UtcNow;
+                }
+            }
+        }
+        
     }
 }

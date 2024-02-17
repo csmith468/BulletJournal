@@ -1,8 +1,9 @@
-using API.Models.Entities;
+using API.Models.Tables.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace API.Data.Pagination {
-    public class PagedList<T> : List<T> where T : Checklist{
+namespace API.Data.Pagination
+{
+    public class PagedList<T> : List<T> where T : Checklist {
         
         public PagedList(IEnumerable<T> items, int count, int pageNumber, int pageSize, DateOnly? minDate, DateOnly? maxDate) {
             CurrentPage = pageNumber;
@@ -29,11 +30,11 @@ namespace API.Data.Pagination {
             // get items from the page we want (skip the items on previous pages)
             var items = await source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
-            var minDateEntry = await source.OrderBy(x => x.Date).FirstOrDefaultAsync();
-            var maxDateEntry = await source.OrderByDescending(x => x.Date).FirstOrDefaultAsync();
+            var minDateEntry = await source.OrderBy(x => x.date).FirstOrDefaultAsync();
+            var maxDateEntry = await source.OrderByDescending(x => x.date).FirstOrDefaultAsync();
             
             if (count > 0) {
-                return new PagedList<T>(items, count, pageNumber, pageSize, minDateEntry.Date, maxDateEntry.Date);
+                return new PagedList<T>(items, count, pageNumber, pageSize, minDateEntry.date, maxDateEntry.date);
             } else {
                 return new PagedList<T>(items, count, pageNumber, pageSize, null, null);
             }

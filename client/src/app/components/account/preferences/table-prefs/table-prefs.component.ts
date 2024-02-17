@@ -2,8 +2,8 @@ import { Component, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { TablePrefDto, TablePreferences } from 'src/app/helpers/models/data-models/tablePreferences';
-import { SettingsService } from 'src/app/helpers/services/settings.service';
+import { ChecklistTypePrefDto, ChecklistTypePreferences } from 'src/app/models/data-models/checklistTypePreferences';
+import { PreferencesService } from 'src/app/services/http/preferences.service';
 
 @Component({
   selector: 'app-table-prefs',
@@ -11,34 +11,32 @@ import { SettingsService } from 'src/app/helpers/services/settings.service';
   styleUrls: ['./table-prefs.component.css']
 })
 export class TablePrefsComponent implements OnDestroy {
-  checklists: TablePreferences[] = [];
-  tableNames: { [key: string]: string } = {'Morning': 'morning', 'Night': 'night', 'Daily': 'daily', 'Wellbeing': 'wellbeing', 
-    'Physical Symptoms': 'physical', 'Spending': 'spending', 'Sleep': 'sleep'};
+  checklistTypes: ChecklistTypePreferences[] = [];
   form!: FormGroup;
-  private readonly subscription = new Subscription();
+  private subscription: Subscription | undefined;
   payload: string = '';
   originalPayload: string = '';
   changeMade: boolean = false;
 
-  constructor(private settingsService: SettingsService, private router: Router) {
+  constructor(private preferencesService: PreferencesService, private router: Router) {
     this.getData();
   }
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    if (this.subscription) this.subscription.unsubscribe();
   }
 
   getData() {
     this.changeMade = false;
     const group: any = {};
-    this.checklists = [];
+    this.checklistTypes = [];
 
-    this.settingsService.getTablePreferences().subscribe(
+    this.preferencesService.getChecklistTypePreferences().subscribe(
       checklists => {
         checklists.forEach(
           c => {
-            group[c.tableName] = new FormControl(c.isTableVisible);
-            this.checklists.push(c);
+            group[c.key] = new FormControl(c.isVisible);
+            this.checklistTypes.push(c);
           }
         )
         this.form = new FormGroup(group);
@@ -51,21 +49,21 @@ export class TablePrefsComponent implements OnDestroy {
 
 
   submitForm() {
-    var finalPrefs: TablePrefDto[] = [];
+    var finalPrefs: ChecklistTypePrefDto[] = [];
 
     Object.keys(this.form.controls).forEach(c => {
       const control = this.form.get(c);
 
       if (control && control.dirty) {
-        const checklist = this.checklists.find(q => q.tableName == c);
-        if (checklist && checklist.isTableVisible != control.value) {
-          checklist.isTableVisible = control.value;
-          finalPrefs.push({tablePreferencesID: checklist.tablePreferencesID, isTableVisible: control.value});
+        const checklist = this.checklistTypes.find(q => q.key == c);
+        if (checklist && checklist.isVisible != control.value) {
+          checklist.isVisible = control.value;
+          finalPrefs.push({checklistTypePreferencesID: checklist.checklistTypePreferencesID, isVisible: control.value});
         }
       }
     })
     if (finalPrefs.length > 0) {
-      this.settingsService.updateTablePreferences(finalPrefs).subscribe({
+      this.preferencesService.updateChecklistTypePreferences(finalPrefs).subscribe({
         next: () => this.getData()
       })
     }
@@ -77,11 +75,14 @@ export class TablePrefsComponent implements OnDestroy {
 
   //on change - compare payload to original payload
   onChange() {
-    const subscription = this.form!.valueChanges.subscribe(() => {
+    // if it makes it here and subscription exists, reset subscription
+    if (this.subscription) this.subscription.unsubscribe();
+    this.changeMade = false;
+
+    this.subscription = this.form!.valueChanges.subscribe(() => {
       this.payload = JSON.stringify(JSON.stringify(this.form!.getRawValue()));
       if (this.payload != this.originalPayload) this.changeMade = true;
       else this.changeMade = false;
     })
-    this.subscription.add(subscription);
   }
 }

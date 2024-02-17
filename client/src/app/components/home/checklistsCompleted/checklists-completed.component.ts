@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { CompletedChecklists } from 'src/app/helpers/models/data-models/completedChecklists';
-import { ChecklistService } from 'src/app/helpers/services/checklist.service';
+import { CompletedChecklists } from 'src/app/models/data-models/completedChecklists';
+import { ChecklistService } from 'src/app/services/http/checklist.service';
 
 @Component({
   selector: 'app-checklists-completed',
@@ -11,10 +11,10 @@ export class ChecklistsCompletedComponent {
   completedChecklists: CompletedChecklists[] = [];
 
   constructor(private checklistService: ChecklistService) {
-    this.checklistService.getCompletedToday().subscribe(
-      c => {
-        this.completedChecklists = c;
-      }
-    );
+    // this.checklistService.getCompletedToday().subscribe(
+    //   c => {
+    //     this.completedChecklists = c;
+    //   }
+    // );
   }
 }

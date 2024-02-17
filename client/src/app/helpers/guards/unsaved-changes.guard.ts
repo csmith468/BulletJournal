@@ -1,14 +1,12 @@
 import { inject } from '@angular/core';
 import { CanDeactivateFn } from '@angular/router';
-import { QuestionPrefsComponent } from 'src/app/components/account/preferences/question-prefs/question-prefs.component';
-import { TablePrefsComponent } from 'src/app/components/account/preferences/table-prefs/table-prefs.component';
 import { ChecklistComponent } from 'src/app/components/checklist/checklist.component';
-import { ConfirmService } from '../services/confirm.service';
+import { ConfirmService } from '../../services/components/confirm.service';
 
 export const unsavedChangesChecklistGuard: CanDeactivateFn<ChecklistComponent> = (component) => {
   const confirmService = inject(ConfirmService);
 
-  if (component.changeMade && component.form.dirty) {
+  if (component.changeMade && component.form.dirty && !component.saving) {
     return confirmService.confirm('Unsaved Changes', 
       'Are you sure you want to continue? Any unsaved changes will be lost.');
   }

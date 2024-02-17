@@ -1,18 +1,18 @@
-import { QuestionBase } from "../../../helpers/models/form-models/questionBase";
+import { Question_Checklist } from "src/app/models/question-models/question_checklist";
+import { QuestionFormItem } from "src/app/models/question-models/questionFormItem";
 
-export class TextboxQuestion extends QuestionBase<any> {
-    override controlType = 'textbox';
-}
+export class TextboxQuestion extends QuestionFormItem<any> { }
 
-export function createTextboxQuestion(key: string, label: string, type: string, minValue: number, 
-        maxValue: number, item?: any) {
-   return new TextboxQuestion({
-        key: key,
-        label: label,
-        type: type,
-        value: (item && item[key] != null) ? item[key] : '',
-        inputType: (type && type.startsWith('number')) ? 'number' : 'text',
-        minValue: minValue,
-        maxValue: maxValue
+export function createTextboxQuestion(q: Question_Checklist, item?: any) {
+    return new TextboxQuestion({
+        value: (item && item[q.key]) ? item[q.key] : '',
+        key: q.key,
+        label: q.label,
+        questionOrder: (q.questionOrder) ? q.questionOrder : 1,
+        kindBase: q.kindBase,
+        kindDetail: q.kindDetail,
+        minValue: (q.minValue) ? q.minValue : undefined,
+        maxValue: (q.maxValue) ? q.maxValue : undefined,
+        required: false
     });
 }

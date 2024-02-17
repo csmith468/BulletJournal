@@ -2,9 +2,9 @@ import { Component } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { DropdownItem } from 'src/app/helpers/models/dropdownItem';
-import { TimezoneLocation } from 'src/app/helpers/models/data-models/timezoneLocation';
-import { AccountService } from 'src/app/helpers/services/account.service';
+import { DropdownItem } from 'src/app/models/dropdownItem';
+import { TimezoneLocation } from 'src/app/models/data-models/timezoneLocation';
+import { AccountService } from 'src/app/services/http/account.service';
 
 @Component({
   selector: 'app-register',
@@ -41,7 +41,7 @@ export class RegisterComponent {
 
   initializeForm() { 
     this.registerForm = this.fb.group({
-      email: ['', Validators.required, Validators.email],
+      email: ['', [Validators.required, Validators.email]],
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
       timezoneLocationId: ['', [Validators.required]],

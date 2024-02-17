@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { QuestionBase } from 'src/app/helpers/models/form-models/questionBase';
+import { QuestionFormItem } from 'src/app/models/question-models/questionFormItem';
 
 @Component({
   standalone: true,
@@ -11,8 +11,6 @@ import { QuestionBase } from 'src/app/helpers/models/form-models/questionBase';
   imports: [CommonModule, ReactiveFormsModule]
 })
 export class SwitchComponent {
-  @Input() question!: QuestionBase<any>;
+  @Input() item!: QuestionFormItem<any>;
   @Input() form!: FormGroup;
-
-
 }

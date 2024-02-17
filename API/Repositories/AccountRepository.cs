@@ -1,12 +1,12 @@
-using System.Xml.Linq;
 using API.Data.Helpers;
 using API.Data.Interfaces;
-using API.Models.DTOs;
-using API.Models.Entities;
+using API.Models.Tables.DTOs;
+using API.Models.Tables.Entities;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
-namespace API.Data.Repositories {
+namespace API.Data.Repositories
+{
     public class AccountRepository : IAccountRepository {
         // private readonly DataContextDapper _contextDapper;
         private readonly DataContextEF _contextEF;
@@ -18,22 +18,22 @@ namespace API.Data.Repositories {
 
         public async Task<AppUser> GetAppUserByEmailAsync(string email) {
             return await _contextEF.AppUsers   
-                .Where(x => x.Email.ToLower() == email.ToLower())
+                .Where(x => x.email.ToLower() == email.ToLower())
                 .SingleOrDefaultAsync();
         }
         
         public async Task<AppUser> GetAppUserByIdAsync(int id) {
             return await _contextEF.AppUsers   
-                .Where(x => x.UserID == id)
+                .Where(x => x.userID == id)
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<AppUser>> GetAppUsersAsync() {
-            return await _contextEF.AppUsers.ToListAsync();
+        public async Task<bool> EmailExistsAsync(string email) {
+            return await _contextEF.AppUsers.AnyAsync(x => x.email.ToLower() == email.ToLower());
         }
 
-        public async Task<bool> EmailExistsAsync(string email) {
-            return await _contextEF.AppUsers.AnyAsync(x => x.Email.ToLower() == email.ToLower());
+        public void UpdateUserAsync(AppUser user) {
+            _contextEF.Entry(user).State = EntityState.Modified;
         }
 
         public async Task<AppUserDto> RegisterUserAsync(AppUser user) {
@@ -42,32 +42,12 @@ namespace API.Data.Repositories {
             if (!result) return null;
 
             return new AppUserDto{
-                UserID = user.UserID,
-                Email = user.Email,
-                FirstName = HelperFunctions.StringTitleCase(user.FirstName),
-                LastName = HelperFunctions.StringTitleCase(user.LastName),
-                TimezoneLocationID = user.TimezoneLocationID
+                userID = user.userID,
+                email = user.email,
+                firstName = HelperFunctions.StringTitleCase(user.firstName),
+                lastName = HelperFunctions.StringTitleCase(user.lastName),
+                timezoneLocationID = user.timezoneLocationID
             };
-        }
-
-        public void Update(AppUser user) {
-            _contextEF.Entry(user).State = EntityState.Modified;
-        }
-
-        public async Task<IEnumerable<TimezoneLocation>> GetTimezoneLocationsAsync() {
-            return await _contextEF.TimezoneLocations
-                .OrderBy(t => t.TimezoneLocationName)
-                .ToListAsync();
-        }
-
-        public async Task<TimezoneLocation> GetTimezoneLocationByID(int id) {
-            return await _contextEF.TimezoneLocations
-                .Where(t => t.TimezoneLocationID == id)
-                .SingleOrDefaultAsync();
-        }
-
-        public async Task<bool> TimezoneExists(int id) {
-            return await _contextEF.TimezoneLocations.AnyAsync(x => x.TimezoneLocationID == id);
         }
     }
 }

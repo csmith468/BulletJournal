@@ -1,17 +1,33 @@
 import { GetDateType } from "src/app/helpers/functions/getDateTypeFn";
-import { QuestionBase } from "../../../helpers/models/form-models/questionBase";
+import { QuestionFormItem } from "../../../models/question-models/questionFormItem";
+import { Question_Checklist } from "src/app/models/question-models/question_checklist";
 
-export class DateQuestion extends QuestionBase<any> {
-    override order = 0;
-    override controlType = 'text';
-    override type = 'date';
+export class DateQuestion extends QuestionFormItem<any> { }
+
+
+export function createDateQuestion(q: Question_Checklist, item?: any) {
+    return new DateQuestion({
+        value: (item && item[q.key]) ? GetDateType(item[q.key]) : new Date,
+        key: q.key,
+        label: q.label,
+        questionOrder: (q.key == 'date') ? 0 : ((q.questionOrder) ? q.questionOrder : 1), // actual 'date' question always first
+        kindBase: q.kindBase,
+        kindDetail: q.kindDetail,
+        required: (q.key == 'date') // only required if it is the actual 'date' question
+    });
 }
 
-export function createDateQuestion(key: string, label: string, required: boolean, item?: any) {
+
+export function createDateQuestionParams(
+    key: string, label: string, required: boolean, questionOrder?: number, value?: Date) 
+{
     return new DateQuestion({
+        value: (value) ? value : new Date,
         key: key,
         label: label,
-        required: required,
-        value: (item && item[key]) ? GetDateType(item[key]) : new Date
+        questionOrder: (questionOrder) ? questionOrder : 1, 
+        kindBase: 'date',
+        kindDetail: 'Date',
+        required: required
     });
 }

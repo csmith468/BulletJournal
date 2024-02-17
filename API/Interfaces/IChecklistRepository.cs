@@ -1,17 +1,16 @@
 using API.Data.Pagination;
-using API.Models.Entities;
+using API.Models.Tables.Entities;
 
-namespace API.Data.Interfaces {
-    public interface IChecklistRepository {
-        Task<T> AddAsync<T>(T item) where T : Checklist;
-        Task<bool> DateUsedAsync<T>(DateOnly date, int userId) where T : Checklist;
-        Task<PagedList<T>> GetListAsync<T>(int userId, PageParams pageParams) where T : Checklist;
-        Task<T> GetByIdAsync<T>(int userId, int itemID) where T : Checklist;
-        Task<T> GetMinDateEntry<T>(int userID) where T : Checklist;
-        Task<T> GetMaxDateEntry<T>(int userID) where T : Checklist;
-        void DeleteChecklist<T>(T checklist) where T : Checklist;
-        Task<IEnumerable<QuestionSet>> GetQuestionSet<T>() where T : Checklist;
-        Task<IEnumerable<string>> GetInvisibleColumnsAsync<T>(int userId) where T : Checklist;
-        Task<IEnumerable<CompletedChecklists>> GetCompletedChecklistsPerDay(int userId);
+// Where you actually have to go into checklist 
+namespace API.Data.Interfaces
+{
+    public interface IChecklistRepository<T> where T : Checklist {
+        Task<Tuple<List<Dictionary<string, object>>, PaginationHeader>> GetListAsync(int userId, PageParams pageParams);
+        Task<IDictionary<string, object>> GetByIdFilteredAsync(int userId, int itemID);
+        Task<T> GetByIdAsync(int userId, int itemID);
+        Task<Dictionary<string, object>> AddAsync(T item);
+        void DeleteAsync(T checklist);
+        Task<bool> DateUsedAsync(DateOnly date, int userId);
+        // Task<IEnumerable<CompletedChecklists>> GetCompletedChecklistsPerDay(string type, int userId);
     }
 }
