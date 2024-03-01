@@ -20,26 +20,6 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost("{type}/add")]
-        public async Task<ActionResult<Checklist>> AddChecklist(string type, Checklist checklist) {
-            var userID = User.GetUserId();
-            checklist.userID = userID;
-            dynamic checklistRepository = GetTypedRepository(type);
-
-            var targetType = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(t => t.Name.ToLower() == type.ToLower());
-            if (targetType == null || !targetType.IsSubclassOf(typeof(Checklist))) 
-                return BadRequest("Invalid checklist type");
-
-            if (await checklistRepository.DateUsedAsync(checklist.date, userID)) 
-                return BadRequest("You already submitted an entry for this date.");
-            
-            var typedChecklist = Activator.CreateInstance(targetType);
-            _mapper.Map(checklist, typedChecklist);
-            
-            // Use reflection to call AddAsync method
-            dynamic addAsyncMethod = checklistRepository.GetType().GetMethod("AddAsync")!.Invoke(checklistRepository, new object[] { typedChecklist });
-            return Ok(await addAsyncMethod);
-        }
 
         [HttpGet("{type}/getMyChecklists")] //?pageNumber=2&pageSize=3 (pageSize = -1 will return all entries)
         public async Task<ActionResult<PagedList<Checklist>>> GetMyChecklists(string type, [FromQuery]PageParams pageParams) {
@@ -93,10 +73,26 @@ namespace API.Controllers
             return BadRequest("Failed to remove entry.");
         }
 
-        // [HttpGet("getCompletedToday")]
-        // public async Task<ActionResult<CompletedChecklists>> GetToDoList() {
-        //     return Ok(await _uow.ChecklistRepository.GetCompletedChecklistsPerDay(User.GetUserId()));
-        // }
+        [HttpPost("{type}/add")]
+        public async Task<ActionResult<Checklist>> AddChecklist(string type, Checklist checklist) {
+            var userID = User.GetUserId();
+            checklist.userID = userID;
+            dynamic checklistRepository = GetTypedRepository(type);
+
+            var targetType = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(t => t.Name.ToLower() == type.ToLower());
+            if (targetType == null || !targetType.IsSubclassOf(typeof(Checklist))) 
+                return BadRequest("Invalid checklist type");
+
+            if (await checklistRepository.DateUsedAsync(checklist.date, userID)) 
+                return BadRequest("You already submitted an entry for this date.");
+            
+            var typedChecklist = Activator.CreateInstance(targetType);
+            _mapper.Map(checklist, typedChecklist);
+            
+            // Use reflection to call AddAsync method
+            dynamic addAsyncMethod = checklistRepository.GetType().GetMethod("AddAsync")!.Invoke(checklistRepository, new object[] { typedChecklist });
+            return Ok(await addAsyncMethod);
+        }
 
         private async Task<ActionResult> UpdateChecklistHelper(string type, Checklist inputChecklist) {
             var userID = User.GetUserId();

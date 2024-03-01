@@ -1,8 +1,8 @@
 # Bullet Journal Web Application
 
 ## Overview
-Welcome to the Bullet Journal web application! This project aims to provide users with a comprehensive and customizable platform for habit tracking, utilizing Angular for the front end and .NET Core for the back end. The application allows users to seamlessly input data through reusable forms, view, edit, and delete entries in tables, and visualize trends with customizable charts. See below for screenshots of the app and for more details.
-
+Welcome to the Bullet Journal web application! This project aims to provide users with a comprehensive and customizable platform for habit tracking, utilizing Angular for the front end and .NET Core for the back end. The application allows users to seamlessly input data through reusable forms, view, edit, and delete entries in tables, and visualize trends with customizable charts. See below for screenshots of the app and more details. 
+ 
 ## Visualize
 
 **Trends:**
