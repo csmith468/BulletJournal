@@ -1,23 +1,26 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Pagination } from 'src/app/models/data-models/pagination';
-import { ChecklistService } from 'src/app/services/http/checklist.service';
-import { DateQuestion, createDateQuestionParams } from '../form-questions/date-picker/dateQuestion';
-import { DatePickerComponent } from '../form-questions/date-picker/date-picker.component';
+
 import { PaginationModule } from 'ngx-bootstrap/pagination';
-import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { GetDateType } from 'src/app/helpers/functions/getDateTypeFn';
-import { MetadataService } from 'src/app/services/http/metadata.service';
+import { Pagination } from 'src/app/models/data-models/pagination';
 import { Question_Table } from 'src/app/models/question-models/question_table';
+import { ChecklistService } from 'src/app/services/http/checklist.service';
+import { MetadataService } from 'src/app/services/http/metadata.service';
+
+import { DatePickerComponent } from '../form-questions/date-picker/date-picker.component';
+import { DateQuestion, createDateQuestionParams } from '../form-questions/date-picker/dateQuestion';
+import { PaginationComponent } from '../layout/pagination/pagination.component';
 
 @Component({
   standalone: true,
   selector: 'app-table',
   templateUrl: './table.component.html',
   styleUrls: ['./table.component.css'],
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, DatePickerComponent, PaginationModule]
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, DatePickerComponent, PaginationModule, PaginationComponent]
 })
 export class TableComponent implements OnInit, OnDestroy {
   table: Array<any> = [];
@@ -27,6 +30,7 @@ export class TableComponent implements OnInit, OnDestroy {
   pageSize = 10;
   source: string = '';
   header: string = 'Data';
+  loading = false;
 
   dateForm!: FormGroup;
   minDate: Date | undefined;
@@ -45,8 +49,7 @@ export class TableComponent implements OnInit, OnDestroy {
   
 
   constructor(private checklistService: ChecklistService, private router: Router, 
-      private route: ActivatedRoute, private metadataService: MetadataService) {
-    console.log('constructor')
+      private route: ActivatedRoute, metadataService: MetadataService) {
     this.source = this.route.snapshot.data['metadata']['source'];
     metadataService.getTableQuestions(this.source).subscribe(
         qs => this.questions = qs
@@ -55,7 +58,6 @@ export class TableComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log('ngoninit')
     this.loadData();
   }
 
@@ -67,31 +69,22 @@ export class TableComponent implements OnInit, OnDestroy {
     var minDateParam = this.dateForm ? this.dateForm!.getRawValue().startDate : null;
     var maxDateParam = this.dateForm ? this.dateForm!.getRawValue().endDate : null;
     if (this.settingDateRange) this.pageNumber = 1;
-    console.log('loading data, page: ' + this.pageNumber.toString())
     this.checklistService.getTableData(this.source, this.pageNumber, this.pageSize, minDateParam, maxDateParam).subscribe({
       next: response => {
-        console.log(response.pagination)
         if (response.result && response.pagination) {
           this.table = <any[]>response.result;
           this.pagination = response.pagination;
           this.minDate = GetDateType(this.pagination.minDate);
           this.maxDate = GetDateType(this.pagination.maxDate);
           if (!this.changingPage) this.createDateForm();
-          if (this.changingPage == true){
-            this.changingPage = false;
-            console.log('load data turned off changing page')
-          }
-          if (this.settingDateRange == true){
-            this.settingDateRange = false;
-            console.log('load data turned off setting date range')
-          }
+          this.changingPage = false;
+          this.settingDateRange = false;
         }
       }
     })
   }
 
   createDateForm() {
-    console.log('createdateform')
     this.startDateInput = createDateQuestionParams(
       'startDate', 'Start Date', false, 1, GetDateType(this.pagination!.minDateInRange)
     );
@@ -99,11 +92,7 @@ export class TableComponent implements OnInit, OnDestroy {
       'endDate', 'End Date', false, 2, GetDateType(this.pagination!.maxDateInRange)
     );
 
-    // this.startDateInput.value = GetDateType(this.pagination!.minDateInRange);
-    // this.endDateInput.value = GetDateType(this.pagination!.maxDateInRange);
-
     const group: any = {};
-
     group['startDate'] = new FormControl(this.startDateInput.value);
     group['endDate'] = new FormControl(this.endDateInput.value);
 
@@ -125,15 +114,13 @@ export class TableComponent implements OnInit, OnDestroy {
       this.validDateInput = (this.dateForm!.getRawValue().startDate != undefined && this.dateForm!.getRawValue().endDate != undefined)
       this.validDateRange = (this.dateForm!.getRawValue().startDate <= this.dateForm!.getRawValue().endDate);
     })
-    console.log(this.dateSubscription)
   }
 
-  pageChanged(event: any) {
+  pageChanged(event: number) {
     if (!this.settingDateRange) {
-      console.log('page changed')
       this.changingPage = true;
-      if (this.pageNumber !== event.page) {
-        this.pageNumber = event.page;
+      if (this.pageNumber !== event) {
+        this.pageNumber = event;
         this.loadData();
       }
     }
@@ -161,6 +148,4 @@ export class TableComponent implements OnInit, OnDestroy {
       }
     });
   }
-
-
 }

@@ -1,13 +1,14 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+
+import { finalize, forkJoin, map, mergeMap, of, switchMap, tap } from 'rxjs';
 import { getDateOnly } from 'src/app/helpers/functions/getDateOnlyFn';
 import { Pagination } from 'src/app/models/data-models/pagination';
-import { ChecklistService } from 'src/app/services/http/checklist.service';
-import { ChartService } from 'src/app/services/components/chart.service';
-import { MetadataService } from 'src/app/services/http/metadata.service';
 import { Question_Chart } from 'src/app/models/question-models/question_chart';
 import { QuestionKind } from 'src/app/models/question-models/questionKind';
-import { finalize, forkJoin, map, mergeMap, of, switchMap, tap } from 'rxjs';
+import { ChartService } from 'src/app/services/components/chart.service';
+import { ChecklistService } from 'src/app/services/http/checklist.service';
+import { MetadataService } from 'src/app/services/http/metadata.service';
 
 @Component({
   selector: 'app-trends',
@@ -23,7 +24,9 @@ export class TrendsComponent {
   questionKindsInSet: QuestionKind[] = [];
   initialRangeType: string = 'Monthly';
   header: string = '';
+  showFilters: boolean = true;
   chartVisibility: {chartNumber: number, visibility: string}[] = [];
+
 
   constructor(private checklistService: ChecklistService, private chartService: ChartService, 
       private route: ActivatedRoute,  private router: Router, private metadataService: MetadataService) {
@@ -40,7 +43,6 @@ export class TrendsComponent {
     //           this.metadataService.getQuestionKindById(q.questionKindID).subscribe(
     //             qt => this.questionKindsInSet.push(qt)
     //           );
-    //           console.log('here')
     //         }
     //     })
     //     // Set chart visibility for all charts to open initially with one chart per question kind
@@ -177,5 +179,10 @@ export class TrendsComponent {
 
   viewData() {
     this.router.navigateByUrl('/data/' + this.source);
+  }
+
+  changeFilterVisibility() {
+    this.showFilters = !this.showFilters;
+    this.chartService.updateFilterVisibility(this.showFilters);
   }
 }

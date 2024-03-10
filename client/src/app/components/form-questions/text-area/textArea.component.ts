@@ -5,18 +5,13 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { QuestionFormItem } from 'src/app/models/question-models/questionFormItem';
 
 @Component({
+  selector: 'app-textArea',
   standalone: true,
-  selector: 'app-dropdown',
-  templateUrl: './dropdown.component.html',
-  styleUrls: ['./dropdown.component.css'],
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './textArea.component.html',
+  styleUrl: './textArea.component.css'
 })
-export class DropdownComponent {
+export class TextAreaComponent {
   @Input() item!: QuestionFormItem<any>;
   @Input() form!: FormGroup;
-
-  get isValid() {
-    return this.form.controls[this.item.key].valid;
-  }
-
 }

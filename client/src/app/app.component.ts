@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { AccountService } from './services/http/account.service';
-import { User } from './models/data-models/user';
+
 import { SideNavToggle } from './components/layout/sidenav/sidenav-styling/sidenav-toggle';
+import { User } from './models/data-models/user';
+import { AccountService } from './services/http/account.service';
 
 
 @Component({
@@ -32,5 +33,10 @@ export class AppComponent implements OnInit {
   onToggleSideNav(data: SideNavToggle) {
     this.screenWidth = data.screenWidth;
     this.isSideNavOpen = data.navOpen;
+
+    // If on trends page, make apex charts think the window resized so it will resize the charts to fit
+    if (location.pathname.includes('trends')) {
+      window.dispatchEvent(new Event('resize'));
+    }
   }
 }

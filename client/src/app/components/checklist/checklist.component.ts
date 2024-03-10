@@ -1,23 +1,27 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { ChecklistService } from 'src/app/services/http/checklist.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { QuestionFormItem } from 'src/app/models/question-models/questionFormItem';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+
 import { Subscription } from 'rxjs';
-import { QuestionControlService } from 'src/app/services/components/question-control.service';
 import { getDateOnly } from 'src/app/helpers/functions/getDateOnlyFn';
-import { TextboxComponent } from '../form-questions/textbox/textbox.component';
-import { SwitchComponent } from '../form-questions/switch/switch.component';
-import { DropdownComponent } from '../form-questions/dropdown/dropdown.component';
-import { DatePickerComponent } from '../form-questions/date-picker/date-picker.component';
-import { createSwitchQuestion } from '../form-questions/switch/switchQuestion';
-import { createTextboxQuestion } from '../form-questions/textbox/textboxQuestion';
-import { createDateQuestion } from '../form-questions/date-picker/dateQuestion';
-import { createSliderQuestion } from '../form-questions/slider/sliderQuestion';
-import { SliderComponent } from '../form-questions/slider/slider.component';
-import { MetadataService } from 'src/app/services/http/metadata.service';
 import { Question_Checklist } from 'src/app/models/question-models/question_checklist';
+import { QuestionFormItem } from 'src/app/models/question-models/questionFormItem';
+import { QuestionControlService } from 'src/app/services/components/question-control.service';
+import { ChecklistService } from 'src/app/services/http/checklist.service';
+import { MetadataService } from 'src/app/services/http/metadata.service';
+
+import { DatePickerComponent } from '../form-questions/date-picker/date-picker.component';
+import { createDateQuestion } from '../form-questions/date-picker/dateQuestion';
+import { DropdownComponent } from '../form-questions/dropdown/dropdown.component';
+import { SliderComponent } from '../form-questions/slider/slider.component';
+import { createSliderQuestion } from '../form-questions/slider/sliderQuestion';
+import { SwitchComponent } from '../form-questions/switch/switch.component';
+import { createSwitchQuestion } from '../form-questions/switch/switchQuestion';
+import { TextAreaComponent } from '../form-questions/text-area/textArea.component';
+import { createTextAreaQuestion } from '../form-questions/text-area/textAreaQuestion';
+import { TextboxComponent } from '../form-questions/textbox/textbox.component';
+import { createTextboxQuestion } from '../form-questions/textbox/textboxQuestion';
 
 @Component({
   standalone: true,
@@ -25,7 +29,7 @@ import { Question_Checklist } from 'src/app/models/question-models/question_chec
   templateUrl: './checklist.component.html',
   styleUrls: ['./checklist.component.css'],
   providers: [ChecklistService],
-  imports: [AsyncPipe, CommonModule, ReactiveFormsModule, 
+  imports: [AsyncPipe, CommonModule, ReactiveFormsModule, TextAreaComponent,
     TextboxComponent, SwitchComponent, DropdownComponent, DatePickerComponent, SliderComponent]
 })
 export class ChecklistComponent implements OnDestroy {
@@ -78,6 +82,9 @@ export class ChecklistComponent implements OnDestroy {
 
     if (q.kindBase == 'slider' && q.minValue && q.maxValue) 
       this.questionFormItems.push(createSliderQuestion(q, checklist))
+
+    if (q.kindBase == 'textarea') 
+      this.questionFormItems.push(createTextAreaQuestion(q, checklist));
 
     // eventually add textarea question
   }

@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
 import { map } from 'rxjs';
 import { CompletedChecklists } from 'src/app/models/data-models/completedChecklists';
 import { VisibleChecklistType } from 'src/app/models/data-models/visibleChecklistType';
@@ -18,17 +19,7 @@ export class MetadataService {
   constructor(private http: HttpClient) { }
 
   getVisibleChecklistTypes() {
-    return this.http.get<VisibleChecklistType[]>(this.baseUrl + 'metadata/getVisibleChecklistTypes').pipe(map(
-      checklistTypes => {
-        return checklistTypes.map(ct => {
-          if (ct.category) {
-            // If the table has a category, update the displayName
-            ct.label = ct.category + ' ' + ct.label;
-          }
-          return ct;
-        }).filter(ct => !ct.isHeader);
-      }
-    ))
+    return this.http.get<VisibleChecklistType[]>(this.baseUrl + 'metadata/getVisibleChecklistTypes');
   }
 
   getQuestionKindById(questionKindId: number) {
