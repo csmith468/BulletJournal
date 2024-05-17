@@ -492,3 +492,6 @@ client/ssl/
 
 # Package lock files (solo portfolio project)
 package-lock.json
+
+BETTER VERSION OF DB SETUP
+Option 1 for new checklist setup.sql
